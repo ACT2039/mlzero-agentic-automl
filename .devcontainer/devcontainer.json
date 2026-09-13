@@ -1,5 +1,5 @@
 {
-    "name": "MLZero-BTech",
+    "name": "MLZero-Agentic-AutoML",
     "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
     "features": {
         "ghcr.io/devcontainers/features/git:1": {}
@@ -8,17 +8,14 @@
         "vscode": {
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
-                "python.formatting.provider": "black",
                 "editor.formatOnSave": true
             },
             "extensions": [
                 "ms-python.python",
                 "ms-python.vscode-pylance",
-                "ms-python.black-formatter",
-                "ms-python.isort"
+                "charliermarsh.ruff"
             ]
         }
     },
-    "postCreateCommand": "pip install -e .[dev]",
-    "forwardPorts": [8000, 7860]
+    "postCreateCommand": "pip install -e .[dev]"
 }
