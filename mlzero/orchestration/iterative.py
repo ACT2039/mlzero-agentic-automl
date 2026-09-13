@@ -37,10 +37,10 @@ class IterativeCodingOrchestrator:
         self.semantic_memory = semantic_memory
         self.episodic_memory = episodic_memory
 
-    def process(self, perceptual_context: PerceptualContext, user_instruction: str | None = None) -> IterativeRunResult:
+    def process(self, perceptual_context: PerceptualContext, user_instruction: str | None = None, run_id: str | None = None) -> IterativeRunResult:
         """Run the iterative loop."""
         import uuid
-        run_id = str(uuid.uuid4())
+        run_id = run_id or str(uuid.uuid4())
         
         if self.episodic_memory:
             self.episodic_memory.start_run(run_id, perceptual_context)

@@ -16,6 +16,10 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "pyyaml>=6.0.0",
     "python-dotenv>=1.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "gradio>=3.0.0",
+    "httpx>=0.24.0",
 ]
 
 [project.optional-dependencies]

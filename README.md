@@ -63,3 +63,19 @@ Secrets must only be placed in `.env`, which is strictly ignored by Git. No cred
 
 ## Future Implementation Phases
 Later phases will introduce LLM integration, a secure execution sandbox, the core iterative coding retry loop, and full integration with ML libraries.
+
+## Phase 8: API and UI Integration
+A FastAPI backend and Gradio UI are available.
+
+### Run the API Server
+\\ash
+python -m mlzero serve --port 8000
+\Endpoints available:
+- \GET /health- \POST /runs\ (Create a background execution)
+- \GET /runs/{run_id}- \GET /runs/{run_id}/episodes- \GET /runs/{run_id}/artifacts
+### Run the Gradio UI
+\\ash
+python -m mlzero ui --port 7860
+\
+### Limitations
+The background run manager is process-local and is not intended for distributed production deployments. State is kept in memory.

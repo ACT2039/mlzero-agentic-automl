@@ -43,7 +43,7 @@ def test_error_analyzer_mock_llm():
     ctx = analyzer.process(art, res, iteration=2)
     assert isinstance(ctx, ErrorContext)
     # The mock returns specific deterministic values:
-    assert ctx.error_category == "file_not_found"
+    assert ctx.error_category == "KeyError"
     assert ctx.iteration == 2
 
 

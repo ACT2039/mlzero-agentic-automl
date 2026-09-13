@@ -15,6 +15,15 @@ class AppConfig(BaseModel):
     name: str = "mlzero"
     version: str = "0.1.0"
     debug: bool = False
+    api_host: str = "127.0.0.1"
+    api_port: int = 8000
+    ui_host: str = "127.0.0.1"
+    ui_port: int = 7860
+    allowed_data_root: str = "tests/data"
+    artifact_root: str = "outputs"
+    max_instruction_length: int = 1000
+    run_timeout_seconds: int = 600
+    max_concurrent_runs: int = 2
 
 
 class LoggingConfig(BaseModel):

@@ -21,61 +21,58 @@ logger = setup_logger(__name__)
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="MLZero: A Multi-Agent System for End-to-end Machine Learning Automation."
-    )
-    parser.add_argument(
-        "--version", action="version", version=f"%(prog)s {settings.app.version}"
-    )
+    parser = argparse.ArgumentParser(description="MLZero Agentic AutoML CLI")
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
     
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    # Run command
+    run_parser = subparsers.add_parser("run", help="Run the full ML pipeline")
+    run_parser.add_argument("--input", required=True, help="Path to input dataset directory")
+    run_parser.add_argument("--instruction", help="Optional instruction describing the task")
+    run_parser.add_argument("--mock-llm", action="store_true", help="Use mock LLM responses")
+    run_parser.add_argument("--json", action="store_true", help="Output final result as JSON")
     
-    # Perceive command
-    perceive_parser = subparsers.add_parser("perceive", help="Run the perception module on a dataset directory.")
-    perceive_parser.add_argument("--input", type=str, required=True, help="Path to the dataset directory.")
-    perceive_parser.add_argument("--instruction", type=str, help="Optional user instruction for the task.")
-    perceive_parser.add_argument("--json", action="store_true", help="Output in JSON format.")
-    perceive_parser.add_argument("--mock-llm", action="store_true", help="Use deterministic mock LLM (default in Phase 2 unless overridden).")
+    # API Server command
+    serve_parser = subparsers.add_parser("serve", help="Start the FastAPI server")
+    serve_parser.add_argument("--host", default=None, help="Host to bind to")
+    serve_parser.add_argument("--port", type=int, default=None, help="Port to bind to")
     
-    # Run-code command
-    run_code_parser = subparsers.add_parser("run-code", help="Execute Python code safely.")
-    run_code_parser.add_argument("--code-file", type=str, required=True, help="Path to the Python code file.")
+    # UI Server command
+    ui_parser = subparsers.add_parser("ui", help="Start the Gradio UI")
+    ui_parser.add_argument("--host", default=None, help="Host to bind to")
+    ui_parser.add_argument("--port", type=int, default=None, help="Port to bind to")
     
-    # Iterate command
-    iterate_parser = subparsers.add_parser("iterate", help="Run the full iterative coding pipeline.")
-    iterate_parser.add_argument("--input", type=str, required=True, help="Path to the dataset directory.")
-    iterate_parser.add_argument("--instruction", type=str, help="Optional user instruction for the task.")
-    iterate_parser.add_argument("--mock-llm", action="store_true", help="Use deterministic mock LLM.")
+    # Perceive command (Legacy support)
+    perceive_parser = subparsers.add_parser("perceive", help="Run the perception phase only")
+    perceive_parser.add_argument("--input", required=True, help="Path to input dataset directory")
+    perceive_parser.add_argument("--instruction", help="Optional task instruction")
+    perceive_parser.add_argument("--json", action="store_true", help="Output as JSON")
+    
+    # Iterate command (Legacy support)
+    iterate_parser = subparsers.add_parser("iterate", help="Run the iterative coding phase")
+    iterate_parser.add_argument("--perception-file", required=True, help="Path to saved perception JSON")
+    iterate_parser.add_argument("--instruction", help="Optional task instruction")
+    iterate_parser.add_argument("--mock-llm", action="store_true", help="Use mock LLM responses")
     
     # Memory command
-    memory_parser = subparsers.add_parser("memory", help="Manage semantic memory.")
-    memory_sub = memory_parser.add_subparsers(dest="memory_command", required=True)
+    memory_parser = subparsers.add_parser("memory", help="Memory management")
+    mem_subparsers = memory_parser.add_subparsers(dest="memory_command", help="Memory sub-command")
     
-    build_parser = memory_sub.add_parser("build", help="Build the semantic index.")
-    build_parser.add_argument("--knowledge-dir", type=str, required=True, help="Path to knowledge directory.")
-    build_parser.add_argument("--summarize", action="store_true", help="Enable LLM summarization.")
-    build_parser.add_argument("--condense", action="store_true", help="Enable LLM condensation.")
-    build_parser.add_argument("--mock-llm", action="store_true", help="Use deterministic mock LLM.")
+    build_parser = mem_subparsers.add_parser("build", help="Build semantic memory index")
+    build_parser.add_argument("--knowledge-dir", required=True, help="Directory containing knowledge docs")
+    build_parser.add_argument("--summarize", action="store_true", help="Generate summaries during ingestion")
+    build_parser.add_argument("--condense", action="store_true", help="Condense chunks during ingestion")
+    build_parser.add_argument("--mock-llm", action="store_true", help="Use mock LLM for summarization")
     
-    search_parser = memory_sub.add_parser("search", help="Search the semantic index.")
-    search_parser.add_argument("--query", type=str, required=True, help="Search query.")
-    search_parser.add_argument("--mock-llm", action="store_true", help="Use deterministic mock LLM.")
+    search_parser = mem_subparsers.add_parser("search", help="Search semantic memory")
+    search_parser.add_argument("--query", required=True, help="Search query")
+    search_parser.add_argument("--mock-llm", action="store_true", help="Use mock LLM for embedding")
     
-    episodes_parser = memory_sub.add_parser("episodes", help="List episodes for a run.")
-    episodes_parser.add_argument("--run-id", type=str, required=True, help="Run ID.")
+    episodes_parser = mem_subparsers.add_parser("episodes", help="List episodes for a run")
+    episodes_parser.add_argument("--run-id", required=True, help="Run ID")
     
-    episode_parser = memory_sub.add_parser("episode", help="View a specific episode.")
-    episode_parser.add_argument("--run-id", type=str, required=True, help="Run ID.")
-    episode_parser.add_argument("--iteration", type=int, required=True, help="Iteration number.")
-    
-    # Phase 7 Run Command
-    run_parser = subparsers.add_parser("run", help="Run the full ML pipeline.")
-    run_parser.add_argument("--input", type=str, required=True, help="Path to raw dataset directory.")
-    run_parser.add_argument("--mock-llm", action="store_true", help="Use deterministic mock LLM.")
-    
-    # Phase 1 Task command
-    task_parser = subparsers.add_parser("task", help="Execute a task (placeholder).")
-    task_parser.add_argument("description", type=str, help="Task description")
+    episode_parser = mem_subparsers.add_parser("episode", help="Get specific episode")
+    episode_parser.add_argument("--run-id", required=True, help="Run ID")
+    episode_parser.add_argument("--iteration", type=int, required=True, help="Iteration number")
     
     return parser.parse_args()
 
@@ -156,106 +153,79 @@ def handle_iterate(args: argparse.Namespace) -> int:
         return 1
 
 def handle_run(args: argparse.Namespace) -> int:
-    """Run the complete ML pipeline."""
-    import json
-    from pathlib import Path
+    """Run the complete ML pipeline using the Application Service."""
 
-    from mlzero.agents.coder import CoderAgent, ErrorAnalyzerAgent, ExecutorAgent
-    from mlzero.agents.perception import (
-        FilePerceptionAgent,
-        LibrarySelectorAgent,
-        TaskPerceptionAgent,
-    )
-    from mlzero.core.llm import get_llm_client
-    from mlzero.memory.episodic import EpisodicMemory
-    from mlzero.memory.semantic import SemanticMemory
-    from mlzero.orchestration.iterative import IterativeCodingOrchestrator
-    from mlzero.schemas.perception import PerceptualContext
-    from mlzero.tools.tabular import TabularDatasetAdapter
+    from mlzero.application.service import MLZeroService
     
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Error: Input path {input_path} does not exist.")
-        return 1
-        
-    llm_client = get_llm_client(use_mock=args.mock_llm)
-    
-    # Init modules
-    file_agent = FilePerceptionAgent(input_path)
-    task_agent = TaskPerceptionAgent(llm_client)
-    library_agent = LibrarySelectorAgent(llm_client)
-    
-    coder = CoderAgent(llm_client)
-    executor = ExecutorAgent()
-    analyzer = ErrorAnalyzerAgent(llm_client)
-    semantic = SemanticMemory(llm_client=llm_client)
-    episodic = EpisodicMemory()
-    
-    print("\n=== RUNNING MLZERO END-TO-END PIPELINE ===")
-    
-    # 1. Perception
     try:
-        fctx = file_agent.process()
-        tctx = task_agent.process(fctx, user_instruction=None)
-        lib_ctx = library_agent.process(tctx, fctx)
-        pctx = PerceptualContext(files=fctx, task=tctx, library=lib_ctx)
-    except Exception as e:  # noqa: BLE001
-        logger.error(f"Perception failed: {e}")
-        print(f"Perception failed: {e}")
+        service = MLZeroService(use_mock_llm=getattr(args, "mock_llm", False))
+        result = service.run_mlzero(
+            dataset_path=args.input,
+            user_instruction=getattr(args, "instruction", None)
+        )
+        
+        if getattr(args, "json", False):
+            print(result.model_dump_json(indent=2))
+        else:
+            print(f"\\n=== RUN STATUS: {result.status} ===")
+            print(f"Run ID: {result.run_id}")
+            print(f"Success: {result.success}")
+            print(f"Iterations: {result.iterations}")
+            print(f"Duration: {result.execution_duration}")
+            
+            if result.task_summary:
+                print(f"Task: {result.task_summary.get('objective')}")
+                
+            if result.selected_library:
+                print(f"Library: {result.selected_library}")
+                
+            if result.final_metrics:
+                print("\\nMetrics:")
+                for k, v in result.final_metrics.items():
+                    print(f"  - {k}: {v:.4f}" if isinstance(v, float) else f"  - {k}: {v}")
+                    
+            if result.prediction_artifact_reference:
+                print(f"Predictions: {result.prediction_artifact_reference}")
+            if result.model_artifact_reference:
+                print(f"Model: {result.model_artifact_reference}")
+                
+            if result.final_error:
+                print(f"\\nError: {result.final_error}")
+                
+            print("=================================\\n")
+            
+        return 0 if result.success else 1
+    except Exception as e:
+        logger.error(f"Run failed: {e}", exc_info=settings.app.debug)
         return 1
-        
-    print(f"Detected Task:    {pctx.task.task_type if pctx.task else 'unknown'}")
-    print(f"Selected Library: {pctx.library.selected_library if pctx.library else 'none'}\n")
-    
+
+def handle_serve(args: argparse.Namespace) -> int:
+    """Start the FastAPI server."""
+    import uvicorn
+
+    from mlzero.api.app import app
     from mlzero.core.config import settings
-    # 2. Prepare Data
-    if pctx.library and pctx.library.selected_library == "autogluon.tabular":
-        data_workspace = Path(settings.ml.output_dir) / "data"
-        data_workspace.mkdir(parents=True, exist_ok=True)
-        adapter = TabularDatasetAdapter(input_path, data_workspace)
-        data_info = adapter.prepare_data()
-        
-        # Update perception context with controlled paths
-        if pctx.task:
-            pctx.task.input_data_files = [data_info["train_path"]]
-            if data_info.get("test_path"):
-                pctx.task.input_data_files.append(data_info["test_path"])
-        print(f"Prepared Data:    {data_info['train_path']}")
-        
-    # 3. Iterative ML Orchestration
-    orchestrator = IterativeCodingOrchestrator(
-        coder=coder,
-        executor=executor,
-        error_analyzer=analyzer,
-        semantic_memory=semantic,
-        episodic_memory=episodic
-    )
     
-    result = orchestrator.process(pctx)
+    host = args.host or settings.app.api_host
+    port = args.port or settings.app.api_port
     
-    print("\n=== FINAL ML RUN RESULT ===")
-    if result.run_id:
-        print(f"Run ID:       {result.run_id}")
-    print(f"Success:      {result.success}")
-    print(f"Iterations:   {result.total_iterations}")
-    print(f"Duration:     {result.total_duration_seconds:.2f}s")
+    print(f"Starting MLZero API server on {host}:{port}")
+    uvicorn.run(app, host=host, port=port)
+    return 0
+
+def handle_ui(args: argparse.Namespace) -> int:
+    """Start the Gradio UI."""
+    from mlzero.core.config import settings
+    from mlzero.ui.app import create_ui
     
-    if result.success and result.final_execution_result:
-        workspace = Path(result.final_execution_result.workspace_dir) if result.final_execution_result.workspace_dir else None
-        if workspace:
-            summary_file = workspace / "summary.json"
-            if summary_file.exists():
-                try:
-                    summary_data = json.loads(summary_file.read_text(encoding="utf-8"))
-                    print(f"\nModel Path:   {summary_data.get('model_path')}")
-                    if "metrics" in summary_data:
-                        print("Metrics:")
-                        for k, v in summary_data["metrics"].items():
-                            print(f"  - {k}: {v:.4f}" if isinstance(v, float) else f"  - {k}: {v}")
-                except (OSError, json.JSONDecodeError) as e:
-                    logger.warning(f"Failed to read or parse summary.json: {e}")
-    print("===========================\n")
-    return 0 if result.success else 1
+    host = args.host or settings.app.ui_host
+    port = args.port or settings.app.ui_port
+    
+    print(f"Starting MLZero UI on {host}:{port}")
+    app = create_ui()
+    app.launch(server_name=host, server_port=port)
+    return 0
+
 def handle_run_code(args: argparse.Namespace) -> int:
     """Handle the run-code command."""
     from mlzero.agents.coder import ExecutorAgent
@@ -456,20 +426,21 @@ def main() -> int:
         return handle_iterate(args)
     elif args.command == "run":
         return handle_run(args)
+    elif args.command == "serve":
+        return handle_serve(args)
+    elif args.command == "ui":
+        return handle_ui(args)
     elif args.command == "run-code":
         return handle_run_code(args)
     elif args.command == "memory":
         return handle_memory(args)
     elif args.command == "task":
         logger.info(f"Received task: {args.description}")
-        logger.info("Task processing is a placeholder in Phase 1/2.")
         return 0
     else:
-        # Fallback for old behaviour `python -m mlzero`
         print("MLZero-Agentic-AutoML")
-        print("Phase 1 foundation initialized.")
+        print("Phase 8 production initialized.")
         return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
