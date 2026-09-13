@@ -1,0 +1,26 @@
+app:
+  name: "mlzero"
+  version: "0.1.0"
+  debug: true
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/mlzero.log"
+
+llm:
+  model: "gpt-4-turbo"
+  temperature: 0.2
+  max_tokens: 4096
+
+execution:
+  timeout_seconds: 3600
+  sandbox_enabled: true
+
+limits:
+  max_iterations: 10
+  max_errors_per_iteration: 3
+
+storage:
+  local_dir: "./data"
+  hf_repo_id: "placeholder-repo-id"

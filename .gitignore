@@ -1,0 +1,40 @@
+# Environments
+.env
+.venv/
+env/
+venv/
+
+# Caches and logs
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.log
+
+# ML data and models
+datasets/
+outputs/
+artifacts/
+checkpoints/
+models/
+
+# Model extensions
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.h5
+*.onnx
+*.pkl
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Coverage
+htmlcov/
+.coverage
+test_venv/
+*.egg-info/
