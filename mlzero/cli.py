@@ -85,40 +85,30 @@ def parse_args() -> argparse.Namespace:
 
 def handle_iterate(args: argparse.Namespace) -> int:
     """Handle the iterate command."""
+    import json
+
     from mlzero.agents.coder import CoderAgent, ErrorAnalyzerAgent, ExecutorAgent
-    from mlzero.agents.perception import (
-        FilePerceptionAgent,
-        LibrarySelectorAgent,
-        TaskPerceptionAgent,
-    )
     from mlzero.orchestration.iterative import IterativeCodingOrchestrator
     from mlzero.schemas.perception import PerceptualContext
     
-    input_path = Path(args.input)
-    if not input_path.exists() or not input_path.is_dir():
-        logger.error(f"Input directory does not exist or is not a directory: {input_path}")
+    perception_path = Path(args.perception_file)
+    if not perception_path.exists() or not perception_path.is_file():
+        logger.error(f"Perception file does not exist or is not a file: {perception_path}")
         return 1
         
     try:
-        # We enforce mock-llm default logic for phase 4 demo
-        # The prompt says: "For Phase 4 the command may use MockLLM by default"
-        use_mock = True
+        use_mock = getattr(args, "mock_llm", False)
         llm_client = get_llm_client(use_mock=use_mock)
         
-        # Perception
-        print("=== RUNNING PERCEPTION ===")
-        file_agent = FilePerceptionAgent(dataset_dir=input_path)
-        file_contexts = file_agent.process()
-        task_agent = TaskPerceptionAgent(llm_client=llm_client)
-        task_context = task_agent.process(file_contexts, args.instruction)
-        lib_agent = LibrarySelectorAgent(llm_client=llm_client)
-        lib_selection = lib_agent.process(task_context, file_contexts)
+        print("=== LOADING PERCEPTION ===")
+        data = json.loads(perception_path.read_bytes())
+        perceptual_context = PerceptualContext.model_validate(data)
         
-        perceptual_context = PerceptualContext(
-            files=file_contexts,
-            task=task_context,
-            library=lib_selection
-        )
+        # Patch input_data_files with absolute paths so executor can find them
+        if perceptual_context.task and perceptual_context.files:
+            abs_files = [fctx.metadata.absolute_path for fctx in perceptual_context.files if fctx.metadata.absolute_path]
+            if abs_files:
+                perceptual_context.task.input_data_files = abs_files
         
         # Iteration
         print("\n=== RUNNING ITERATIVE CODING ===")
@@ -141,7 +131,7 @@ def handle_iterate(args: argparse.Namespace) -> int:
             episodic_memory=ep_mem
         )
         
-        result = orchestrator.process(perceptual_context, args.instruction)
+        result = orchestrator.process(perceptual_context, getattr(args, "instruction", None))
         
         print("\n=== FINAL RESULT ===")
         if result.run_id:
