@@ -167,7 +167,7 @@ def handle_run(args: argparse.Namespace) -> int:
         if getattr(args, "json", False):
             print(result.model_dump_json(indent=2))
         else:
-            print(f"\\n=== RUN STATUS: {result.status} ===")
+            print(f"\n=== RUN STATUS: {result.status} ===")
             print(f"Run ID: {result.run_id}")
             print(f"Success: {result.success}")
             print(f"Iterations: {result.iterations}")
@@ -180,7 +180,7 @@ def handle_run(args: argparse.Namespace) -> int:
                 print(f"Library: {result.selected_library}")
                 
             if result.final_metrics:
-                print("\\nMetrics:")
+                print("\nMetrics:")
                 for k, v in result.final_metrics.items():
                     print(f"  - {k}: {v:.4f}" if isinstance(v, float) else f"  - {k}: {v}")
                     
@@ -190,9 +190,9 @@ def handle_run(args: argparse.Namespace) -> int:
                 print(f"Model: {result.model_artifact_reference}")
                 
             if result.final_error:
-                print(f"\\nError: {result.final_error}")
+                print(f"\nError: {result.final_error}")
                 
-            print("=================================\\n")
+            print("=================================\n")
             
         return 0 if result.success else 1
     except Exception as e:
