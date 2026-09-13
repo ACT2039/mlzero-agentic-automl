@@ -36,7 +36,6 @@ def create_run(request: RunRequest) -> RunResponse:
     if request.user_instruction and len(request.user_instruction) > settings.app.max_instruction_length:
         raise HTTPException(status_code=400, detail="User instruction exceeds maximum length")
         
-    run_manager.use_mock_llm = request.options.get("mock_llm", False)
     run_id = run_manager.submit_run(
         dataset_path=str(input_path),
         user_instruction=request.user_instruction,

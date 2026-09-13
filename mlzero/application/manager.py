@@ -13,10 +13,9 @@ class RunManager:
     Process-local Run Manager for background MLZero execution.
     Not intended for distributed production.
     """
-    def __init__(self, use_mock_llm: bool = False):
+    def __init__(self) -> None:
         self._runs: dict[str, RunStatusResponse] = {}
         self._lock = threading.Lock()
-        self.use_mock_llm = use_mock_llm
 
     def submit_run(self, dataset_path: str, user_instruction: str | None = None, options: dict[str, Any] | None = None) -> str:
         run_id = str(uuid.uuid4())
@@ -43,7 +42,8 @@ class RunManager:
             if run_id in self._runs:
                 self._runs[run_id].status = "RUNNING"
                 
-        service = MLZeroService(use_mock_llm=self.use_mock_llm)
+        use_mock_llm = options.get("mock_llm", False)
+        service = MLZeroService(use_mock_llm=use_mock_llm)
         try:
             result = service.run_mlzero(dataset_path, user_instruction, options)
             with self._lock:
