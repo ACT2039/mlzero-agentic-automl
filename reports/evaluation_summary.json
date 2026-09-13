@@ -1,0 +1,278 @@
+[
+  {
+    "experiment_id": "f3a7da13-ba35-4af5-8215-8b389bc7d779",
+    "name": "ablation_epi_mem_without_binary",
+    "config": {
+      "name": "ablation_epi_mem_without_binary",
+      "dataset": "evaluation/datasets/binary_cls",
+      "task_type": "binary_classification",
+      "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": false,
+      "disable_episodic_memory": true
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.035013437271118,
+      "error_category": null,
+      "ml_accuracy": 0.7125,
+      "ml_f1": 0.735632183908046,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "4d9bb072-df13-46fa-be2d-4a34b58f7eff",
+    "name": "ablation_epi_mem_with_binary",
+    "config": {
+      "name": "ablation_epi_mem_with_binary",
+      "dataset": "evaluation/datasets/binary_cls",
+      "task_type": "binary_classification",
+      "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": false,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.122464656829834,
+      "error_category": null,
+      "ml_accuracy": 0.7125,
+      "ml_f1": 0.735632183908046,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "f80e570f-8849-4c4c-9520-d5fed9ecda0a",
+    "name": "ablation_sem_mem_without_binary",
+    "config": {
+      "name": "ablation_sem_mem_without_binary",
+      "dataset": "evaluation/datasets/binary_cls",
+      "task_type": "binary_classification",
+      "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": true,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.12773060798645,
+      "error_category": null,
+      "ml_accuracy": 0.7125,
+      "ml_f1": 0.735632183908046,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "cf3b928d-b210-4adc-a763-946c79fca39e",
+    "name": "ablation_sem_mem_with_binary",
+    "config": {
+      "name": "ablation_sem_mem_with_binary",
+      "dataset": "evaluation/datasets/binary_cls",
+      "task_type": "binary_classification",
+      "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": false,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.026313304901123,
+      "error_category": null,
+      "ml_accuracy": 0.7125,
+      "ml_f1": 0.735632183908046,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "47d1995d-8397-44b7-afb8-c8b78bcde76a",
+    "name": "ablation_sem_mem_without_regression",
+    "config": {
+      "name": "ablation_sem_mem_without_regression",
+      "dataset": "evaluation/datasets/regression",
+      "task_type": "regression",
+      "instruction": "Train a regression model and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": true,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 3.090045690536499,
+      "error_category": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": -22.393914075578962,
+      "ml_rmse": -31.28197366555647
+    }
+  },
+  {
+    "experiment_id": "11dd1881-64a8-463b-8a5f-50c54da8e05c",
+    "name": "ablation_sem_mem_with_regression",
+    "config": {
+      "name": "ablation_sem_mem_with_regression",
+      "dataset": "evaluation/datasets/regression",
+      "task_type": "regression",
+      "instruction": "Train a regression model and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": false,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 3.208423614501953,
+      "error_category": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": -22.393914075578962,
+      "ml_rmse": -31.28197366555647
+    }
+  },
+  {
+    "experiment_id": "165e1fda-3ad6-4a91-93b5-2b0218e17a16",
+    "name": "baseline_binary_cls",
+    "config": {
+      "name": "baseline_binary_cls",
+      "dataset": "evaluation/datasets/binary_cls",
+      "task_type": "binary_classification",
+      "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": true,
+      "disable_episodic_memory": true
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.104464292526245,
+      "error_category": null,
+      "ml_accuracy": 0.7125,
+      "ml_f1": 0.735632183908046,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "e1421d4f-dce4-42b2-9334-525671cece5a",
+    "name": "baseline_multi_cls",
+    "config": {
+      "name": "baseline_multi_cls",
+      "dataset": "evaluation/datasets/multi_cls",
+      "task_type": "multiclass_classification",
+      "instruction": "Train a multiclass classifier on the iris dataset and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": true,
+      "disable_episodic_memory": true
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.123018264770508,
+      "error_category": null,
+      "ml_accuracy": 0.9833333333333333,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "1e427ee1-5ccf-474e-ab99-30291c79f62f",
+    "name": "baseline_regression",
+    "config": {
+      "name": "baseline_regression",
+      "dataset": "evaluation/datasets/regression",
+      "task_type": "regression",
+      "instruction": "Train a regression model on the diabetes dataset and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": true,
+      "disable_episodic_memory": true
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 3.100362539291382,
+      "error_category": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": -22.393914075578962,
+      "ml_rmse": -31.28197366555647
+    }
+  },
+  {
+    "experiment_id": "206e88b9-cc5c-489c-ba9d-4522ea735d62",
+    "name": "full_system_binary",
+    "config": {
+      "name": "full_system_binary",
+      "dataset": "evaluation/datasets/binary_cls",
+      "task_type": "binary_classification",
+      "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": false,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.151199102401733,
+      "error_category": null,
+      "ml_accuracy": 0.7125,
+      "ml_f1": 0.735632183908046,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "7c3fd98c-2957-41b5-b947-da300d80d8e3",
+    "name": "full_system_multi_cls",
+    "config": {
+      "name": "full_system_multi_cls",
+      "dataset": "evaluation/datasets/multi_cls",
+      "task_type": "multiclass_classification",
+      "instruction": "Train a multiclass classifier on the iris dataset and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": false,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 4.0851781368255615,
+      "error_category": null,
+      "ml_accuracy": 0.9833333333333333,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    }
+  },
+  {
+    "experiment_id": "8a8f59f0-a7dd-4907-864a-90252c331026",
+    "name": "full_system_regression",
+    "config": {
+      "name": "full_system_regression",
+      "dataset": "evaluation/datasets/regression",
+      "task_type": "regression",
+      "instruction": "Train a regression model on the diabetes dataset and save predictions to out/predictions.csv",
+      "mock_llm": true,
+      "disable_semantic_memory": false,
+      "disable_episodic_memory": false
+    },
+    "metrics": {
+      "success": true,
+      "iterations": 2,
+      "execution_time": 3.0375752449035645,
+      "error_category": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": -22.393914075578962,
+      "ml_rmse": -31.28197366555647
+    }
+  }
+]

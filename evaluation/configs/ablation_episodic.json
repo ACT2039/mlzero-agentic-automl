@@ -1,0 +1,20 @@
+[
+  {
+    "name": "ablation_epi_mem_without_binary",
+    "dataset": "evaluation/datasets/binary_cls",
+    "task_type": "binary_classification",
+    "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+    "mock_llm": true,
+    "disable_semantic_memory": false,
+    "disable_episodic_memory": true
+  },
+  {
+    "name": "ablation_epi_mem_with_binary",
+    "dataset": "evaluation/datasets/binary_cls",
+    "task_type": "binary_classification",
+    "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+    "mock_llm": true,
+    "disable_semantic_memory": false,
+    "disable_episodic_memory": false
+  }
+]

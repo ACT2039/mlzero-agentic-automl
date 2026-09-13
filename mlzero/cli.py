@@ -41,6 +41,13 @@ def parse_args() -> argparse.Namespace:
     ui_parser.add_argument("--host", default=None, help="Host to bind to")
     ui_parser.add_argument("--port", type=int, default=None, help="Port to bind to")
     
+    # Evaluate command
+    eval_parser = subparsers.add_parser("evaluate", help="Run evaluation experiments")
+    eval_parser.add_argument("--config", required=True, help="Path to evaluation config JSON")
+    
+    # Demo command
+    subparsers.add_parser("demo", help="Run the final demo")
+    
     # Perceive command (Legacy support)
     perceive_parser = subparsers.add_parser("perceive", help="Run the perception phase only")
     perceive_parser.add_argument("--input", required=True, help="Path to input dataset directory")
@@ -198,6 +205,31 @@ def handle_run(args: argparse.Namespace) -> int:
     except Exception as e:
         logger.error(f"Run failed: {e}", exc_info=settings.app.debug)
         return 1
+
+def handle_evaluate(args: argparse.Namespace) -> int:
+    """Run the evaluation framework."""
+    import json
+
+    from evaluation.experiments import run_experiment
+    from evaluation.report import generate_report
+    
+    with open(args.config, "r") as f:
+        configs = json.load(f)
+        
+    results = []
+    for conf in configs:
+        res = run_experiment(conf.get("name", "Unnamed"), conf)
+        results.append(res)
+        
+    generate_report(results)
+    print("Evaluation complete. Reports saved to reports/")
+    return 0
+
+def handle_demo(args: argparse.Namespace) -> int:
+    """Run the interactive demo."""
+    from scripts.demo import run_demo
+    run_demo()
+    return 0
 
 def handle_serve(args: argparse.Namespace) -> int:
     """Start the FastAPI server."""
@@ -420,26 +452,30 @@ def main() -> int:
     """Main entry point for the CLI."""
     args = parse_args()
     
-    if args.command == "perceive":
+    if getattr(args, "command", None) == "perceive":
         return handle_perceive(args)
-    elif args.command == "iterate":
+    elif getattr(args, "command", None) == "iterate":
         return handle_iterate(args)
-    elif args.command == "run":
+    elif getattr(args, "command", None) == "run":
         return handle_run(args)
-    elif args.command == "serve":
+    elif getattr(args, "command", None) == "serve":
         return handle_serve(args)
-    elif args.command == "ui":
+    elif getattr(args, "command", None) == "ui":
         return handle_ui(args)
-    elif args.command == "run-code":
+    elif getattr(args, "command", None) == "evaluate":
+        return handle_evaluate(args)
+    elif getattr(args, "command", None) == "demo":
+        return handle_demo(args)
+    elif getattr(args, "command", None) == "run-code":
         return handle_run_code(args)
-    elif args.command == "memory":
+    elif getattr(args, "command", None) == "memory":
         return handle_memory(args)
-    elif args.command == "task":
-        logger.info(f"Received task: {args.description}")
+    elif getattr(args, "command", None) == "task":
+        logger.info(f"Received task: {getattr(args, 'description', '')}")
         return 0
     else:
         print("MLZero-Agentic-AutoML")
-        print("Phase 8 production initialized.")
+        print("Phase 9 production initialized.")
         return 0
 
 if __name__ == "__main__":

@@ -88,7 +88,6 @@ def test_executor_empty_code():
     assert "empty" in result.error_info
 
 
-import pytest
 
 @pytest.mark.skip(reason="Phase 7 relaxed security isolation to support AutoGluon")
 def test_executor_security_isolation(monkeypatch):

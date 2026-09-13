@@ -1,35 +1,83 @@
-# Implementation Plan
+# Implementation Notes
 
-## Current Project Structure
-The repository is structured around a core `mlzero` Python package:
-- `agents/`: Core perception and coding agent stubs
-- `core/`: Configuration and logging utilities
-- `schemas/`: Pydantic base data models
-- `orchestration/`, `tools/`, `utils/`: Scaffolded for future phases
+## Phase Summary
 
-## Development Standards
-- Python >=3.11,<3.12
-- Pydantic for data validation
-- Ruff for linting and formatting
-- Mypy for static type checking
-- Pytest for testing
+| Phase | Component | Key Files |
+|---|---|---|
+| 1 | Foundation | `mlzero/core/config.py`, `mlzero/core/llm.py`, `mlzero/core/logger.py` |
+| 2 | Perception | `mlzero/agents/perception.py`, `mlzero/schemas/perception.py` |
+| 3 | Coder + Executor | `mlzero/agents/coder.py`, `mlzero/tools/python_runner.py` |
+| 4 | Error Analyzer | `mlzero/agents/coder.py::ErrorAnalyzerAgent` |
+| 5 | Semantic Memory | `mlzero/memory/semantic.py`, `mlzero/memory/index.py`, `mlzero/memory/ingestion.py` |
+| 6 | Episodic Memory | `mlzero/memory/episodic.py`, `mlzero/memory/episodic_store.py` |
+| 7 | Real ML | `mlzero/tools/tabular.py`, `mlzero/core/llm.py::MockLLMClient` |
+| 8 | API + UI | `mlzero/api/`, `mlzero/ui/`, `mlzero/application/` |
+| 9 | Evaluation + Docs | `evaluation/`, `docs/`, `scripts/`, `reports/` |
 
-## Phase-by-Phase Implementation Strategy
-- **Phase 1 (Completed):** Project foundation. Basic folder structure, configuration management, schemas, and CLI initialization.
-- **Phase 2 (Completed):** Implement Perception reasoning pipelines (Task, File, Library).
-- **Phase 3 (Completed):** Coder and Executor components utilizing isolated subprocess boundaries.
-- **Phase 4 (Completed):** Error Analysis and Iterative Retry Orchestration.
-- **Phase 5 (Completed):** Semantic Memory / RAG capability.
-- **Phase 6 (Completed):** Episodic Memory chronological history tracking.
-- **Phase 7 (Completed):** Real ML Integration using AutoGluon Tabular for classification/regression.
+---
 
-## Phase 7 ML Integration Details
-The first production machine learning backend runs on **AutoGluon Tabular**.
-- **Execution Limits:** `PythonRunner` encapsulates LLM-generated ML code inside isolated `tempfile.mkdtemp` environments, trapping standard output/error, capping process sizes, and enforcing `time_limit` constraints on `TabularPredictor.fit`.
-- **Artifacts:** Output results (including binary artifacts and generated prediction CSVs) are persisted via Python's `shutil` mechanisms under `./outputs/models/exec_<id>/`. The models are fully decoupled from Git tracking to preserve repo size.
-- **Limitations:** Limited strictly to Tabular tasks. RAG/Semantic mechanisms handle AutoGluon knowledge dynamically, preventing context bloat. Deep vector embeddings or complex non-tabular capabilities remain uninstantiated by design.
+## Key Design Decisions
+
+### 1. MockLLMClient for Offline Testing
+
+All unit and integration tests use `MockLLMClient`, which returns deterministic
+responses without network access. This ensures tests are:
+- Reproducible
+- Fast (< 5s for full suite)
+- Free (no API cost)
+
+### 2. TF-IDF as Default Semantic Index
+
+FAISS requires native libraries. TF-IDF from scikit-learn works everywhere
+and is sufficient for the small knowledge bases used in this project.
+
+### 3. JSON Episodic Store
+
+Episodes are serialised as JSON (not pickle) for safety, readability, and
+portability. Each run gets its own `.json` file under `memory/episodic/`.
+
+### 4. Subprocess Execution
+
+Generated code is executed via `subprocess.run()`, not `eval()` or `exec()`.
+This provides process-level isolation between the orchestrator and generated
+ML code. The subprocess has a configurable timeout.
+
+### 5. Single-Singleton RunManager
+
+`RunManager` is a module-level singleton. This means run state is
+process-local and not shared across multiple uvicorn workers or restarts.
+This is documented as a known limitation.
+
+### 6. Pydantic v2 for All Schemas
+
+All data transfer objects use Pydantic v2 models. This provides:
+- Automatic validation
+- JSON serialisation via `.model_dump_json()`
+- Clear schema documentation
+
+---
+
+## Configuration
+
+All configurable parameters live in `mlzero/core/config.py` via `AppConfig`
+(backed by Pydantic Settings). Environment variables or a `.env` file
+override defaults.
+
+Key settings:
+- `MLZERO_EXECUTION__TIMEOUT_SECONDS` — subprocess timeout
+- `MLZERO_APP__ALLOWED_DATA_ROOT` — API path security boundary
+- `MLZERO_API__HOST` / `MLZERO_API__PORT` — FastAPI server bind
+- `MLZERO_ML__OUTPUT_DIR` — where models/predictions are saved
+
+---
 
 ## Testing Strategy
-Tests are split into:
-- `tests/unit/`: Fast, deterministic tests that mock LLM responses using regex mappings.
-- `tests/integration/`: End-to-end component interaction tests simulating real ML failure/recovery using local CSV fixtures (e.g. `tests/data/tiny_classification`). Tests execute safely disconnected from the Internet.
+
+| Test Type | Location | Runs ML? | Requires API Key? |
+|---|---|---|---|
+| Unit | `tests/unit/` | No | No |
+| API | `tests/unit/test_api.py` | No | No |
+| Application | `tests/unit/test_application.py` | Mock only | No |
+| Integration | `tests/integration/test_ml_pipeline.py` | Yes (tiny) | No |
+
+Integration tests are skipped unless `RUN_ML_INTEGRATION=1` is set.

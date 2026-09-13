@@ -19,7 +19,7 @@ class AppConfig(BaseModel):
     api_port: int = 8000
     ui_host: str = "127.0.0.1"
     ui_port: int = 7860
-    allowed_data_root: str = "tests/data"
+    allowed_data_root: str = "."
     artifact_root: str = "outputs"
     max_instruction_length: int = 1000
     run_timeout_seconds: int = 600

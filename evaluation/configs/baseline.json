@@ -1,0 +1,29 @@
+[
+  {
+    "name": "baseline_binary_cls",
+    "dataset": "evaluation/datasets/binary_cls",
+    "task_type": "binary_classification",
+    "instruction": "Train a binary classifier and save predictions to out/predictions.csv",
+    "mock_llm": true,
+    "disable_semantic_memory": true,
+    "disable_episodic_memory": true
+  },
+  {
+    "name": "baseline_multi_cls",
+    "dataset": "evaluation/datasets/multi_cls",
+    "task_type": "multiclass_classification",
+    "instruction": "Train a multiclass classifier on the iris dataset and save predictions to out/predictions.csv",
+    "mock_llm": true,
+    "disable_semantic_memory": true,
+    "disable_episodic_memory": true
+  },
+  {
+    "name": "baseline_regression",
+    "dataset": "evaluation/datasets/regression",
+    "task_type": "regression",
+    "instruction": "Train a regression model on the diabetes dataset and save predictions to out/predictions.csv",
+    "mock_llm": true,
+    "disable_semantic_memory": true,
+    "disable_episodic_memory": true
+  }
+]

@@ -67,4 +67,4 @@ def create_ui() -> gr.Blocks:
             outputs=[status_box, perc_box, lib_box, metrics_box, err_box, artifacts_box]
         )
         
-    return demo
+    return demo  # type: ignore[no-any-return]

@@ -20,6 +20,8 @@ dependencies = [
     "uvicorn>=0.23.0",
     "gradio>=3.0.0",
     "httpx>=0.24.0",
+    "scikit-learn>=1.4.0",
+    "matplotlib>=3.7.0",
 ]
 
 [project.optional-dependencies]
