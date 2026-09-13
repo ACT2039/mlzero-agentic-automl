@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,15 +22,34 @@ class LoggingConfig(BaseModel):
     file: str = "logs/mlzero.log"
 
 
+class MemoryConfig(BaseModel):
+    knowledge_root: str = "knowledge"
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
+    max_document_size_bytes: int = 1024 * 1024  # 1MB
+    embedding_backend: str = "tfidf"
+    index_path: str = "knowledge/index.json"
+    retrieval_top_k: int = 3
+    max_retrieved_context_chars: int = 4000
+
+
 class LLMConfig(BaseModel):
     model: str = "gpt-4-turbo"
     temperature: float = 0.2
     max_tokens: int = 4096
+    timeout: int = 30
+    retry_count: int = 3
 
 
 class ExecutionConfig(BaseModel):
-    timeout_seconds: int = 3600
+    timeout_seconds: int = 300
     sandbox_enabled: bool = True
+    max_stdout_size_bytes: int = 100 * 1024
+    max_stderr_size_bytes: int = 100 * 1024
+    workspace_root: str = "outputs/workspaces"
+    output_dir_name: str = "out"
+    allowed_env_vars: list[str] = Field(default_factory=lambda: ["PATH", "SYSTEMROOT", "USERPROFILE"])
+    python_executable: str = "python"
 
 
 class LimitsConfig(BaseModel):
@@ -41,6 +60,14 @@ class LimitsConfig(BaseModel):
 class StorageConfig(BaseModel):
     local_dir: str = "./data"
     hf_repo_id: str = "placeholder-repo-id"
+
+
+class PerceptionConfig(BaseModel):
+    max_file_size_bytes: int = Field(default=10 * 1024 * 1024, description="10MB max file size to process")
+    max_text_characters: int = Field(default=5000, description="Max characters to read from text/document files")
+    max_rows_sampled: int = Field(default=5, description="Max rows to sample from CSV/TSV")
+    ignored_directories: list[str] = Field(default_factory=lambda: [".git", ".venv", "venv", "env", "__pycache__", "node_modules"])
+    allowed_extensions: list[str] = Field(default_factory=lambda: [".csv", ".tsv", ".json", ".jsonl", ".txt", ".md"])
 
 
 class Settings(BaseSettings):
@@ -57,6 +84,8 @@ class Settings(BaseSettings):
     execution: ExecutionConfig = ExecutionConfig()
     limits: LimitsConfig = LimitsConfig()
     storage: StorageConfig = StorageConfig()
+    perception: PerceptionConfig = PerceptionConfig()
+    memory: MemoryConfig = MemoryConfig()
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -88,6 +117,8 @@ class Settings(BaseSettings):
             settings.limits = LimitsConfig(**yaml_data["limits"])
         if "storage" in yaml_data:
             settings.storage = StorageConfig(**yaml_data["storage"])
+        if "perception" in yaml_data:
+            settings.perception = PerceptionConfig(**yaml_data["perception"])
 
         return settings
 

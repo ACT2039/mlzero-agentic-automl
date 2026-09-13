@@ -33,10 +33,28 @@ Responsible for understanding the user's intent, the data provided, and the best
 - **ML Library Selection Agent**: Recommends the best frameworks based on task and data characteristics.
 
 ## 2. Semantic Memory
-A knowledge base that stores domain expertise and documentation.
-- **Documentation Ingestion**: Capable of reading and parsing library docs.
-- **Summarization/Condensation**: Compresses lengthy documentation into concise instructions.
-- **Retrieval**: Provides contextually relevant snippets to the Coder Agent during generation.
+A retrieval-augmented knowledge base (RAG) providing the Coder with relevant external knowledge about ML libraries and current problems.
+
+```
+Documentation
+     ↓
+Chunking
+     ↓
+Summarization
+     ↓
+Condensation
+     ↓
+Index
+     ↓
+Retrieval
+     ↓
+Coder
+```
+
+- **Why it's needed**: LLMs often hallucinate specific library APIs or lack knowledge of very recent frameworks. Semantic Memory grounds the Coder in factual, localized documentation.
+- **Differs from LLM internal knowledge**: Internal knowledge is frozen at training time and general-purpose. Semantic Memory is targeted, domain-specific, and dynamically updatable.
+- **Retrieval Bounding**: The system truncates retrieved knowledge via top-K scoring and maximum character limits (e.g., 4000 chars) to prevent overwhelming the context window and diluting the core task instructions.
+- **Limitations**: The current implementation utilizes a lightweight local TF-IDF index for dependency-free operation, meaning it relies on exact term matching rather than dense semantic embeddings (which would require downloading heavy model weights).
 
 ## 3. Episodic Memory
 Tracks the state of the current and past execution attempts to avoid repeating mistakes.
