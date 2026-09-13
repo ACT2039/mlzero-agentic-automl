@@ -160,11 +160,12 @@ class LibrarySelectorAgent:
     REGISTRY: ClassVar[list[dict[str, Any]]] = [
         {
             "name": "autogluon.tabular",
-            "version": "placeholder",
+            "version": "1.1.1",
             "description": "AutoML for tabular data (CSV, Parquet) classification and regression.",
             "modalities": ["tabular"],
             "task_types": ["classification", "regression"],
-            "limitations": "Requires tabular data formats."
+            "limitations": "May consume significant memory; requires structured data.",
+            "basic_usage": "from autogluon.tabular import TabularPredictor\npredictor = TabularPredictor(label='target').fit(train_data)\npredictions = predictor.predict(test_data)"
         },
         {
             "name": "autogluon.multimodal",

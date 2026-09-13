@@ -18,6 +18,12 @@ artifacts/
 checkpoints/
 models/
 
+# Runtime and generated
+/memory/
+/iterate_out.txt
+/pytest_output.txt
+/docs/phase7_report.md
+
 # Model extensions
 *.pt
 *.pth

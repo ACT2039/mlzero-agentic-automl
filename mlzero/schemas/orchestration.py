@@ -16,8 +16,9 @@ class IterationRecord(BaseModel):
 
 
 class IterativeRunResult(BaseModel):
-    """Final result of the iterative pipeline."""
-    success: bool = Field(..., description="Whether the overall pipeline succeeded.")
+    """The final result of the entire iterative pipeline."""
+    run_id: str | None = Field(default=None, description="The ID of the episodic run.")
+    success: bool = Field(..., description="Whether the pipeline eventually succeeded.")
     total_iterations: int = Field(..., description="Total number of iterations run.")
     final_code_artifact: CodeArtifact | None = Field(default=None, description="The last generated code artifact.")
     final_execution_result: ExecutionResult | None = Field(default=None, description="The last execution result.")

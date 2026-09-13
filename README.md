@@ -20,8 +20,20 @@ The architecture is structured around four main pillars:
 3. **Episodic Memory**: Iteration history, execution logs, and error tracking.
 4. **Iterative Coding**: Coder, Executor, and Error Analyzer agents orchestrated in a retry loop.
 
-## Current Phase 1 Status
-Phase 1 establishes the clean project foundation, schemas, logging, configuration, and stubbed agents. It does not yet perform ML automation or LLM calls.
+## Current Status: Phase 7 Completed
+The project has successfully implemented:
+- **Perception** (File, Task, Library Selection)
+- **Coder & Executor** (Secure Subprocess execution)
+- **Error Analysis & Iterative Retry** (Orchestrator loop)
+- **Semantic Memory** (RAG documentation retrieval)
+- **Episodic Memory** (Chronological run history tracking)
+- **Real ML Integration** (AutoGluon tabular classification/regression)
+
+## AutoGluon Integration & Limitations
+The system currently implements **AutoGluon Tabular** as the primary ML framework.
+- **Setup:** A deterministic `TabularDatasetAdapter` bridges data from raw locations to a managed `./outputs/data/` environment.
+- **Artifacts:** Models and execution scripts are securely logged under `./outputs/models/exec_<id>/`. Binary models are excluded from Git.
+- **Limitations:** Currently limited to Tabular Supervised Learning (classification/regression). Large unstructured formats (images/text) or deep vector databases are out-of-scope for the current implementation footprint. Training time is capped deliberately to avoid large-scale infrastructure costs.
 
 ## Development Setup
 1. Clone the repository.
@@ -30,16 +42,21 @@ Phase 1 establishes the clean project foundation, schemas, logging, configuratio
    ```bash
    pip install -e ".[dev]"
    ```
-4. Copy `.env.example` to `.env` and fill in placeholders if necessary.
-
-## Python Version
-Target runtime: Python 3.11.
+4. For ML integration, install AutoGluon locally or in a secondary test environment:
+   ```bash
+   pip install autogluon.tabular==1.1.1
+   ```
 
 ## Configuration
 Configuration is managed through `configs/config.yaml` and `.env` variables via Pydantic.
 
 ## Testing
-Run unit tests with `pytest`. They are deterministic and require no external APIs.
+Run standard unit tests with `pytest`. They are deterministic and require no external APIs.
+To run the ML End-to-End integration test (requires AutoGluon):
+```bash
+$env:RUN_ML_INTEGRATION="1"
+pytest tests/integration/test_ml_pipeline.py -v -s
+```
 
 ## Security
 Secrets must only be placed in `.env`, which is strictly ignored by Git. No credentials should be committed.

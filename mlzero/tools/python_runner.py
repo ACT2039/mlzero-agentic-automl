@@ -60,10 +60,7 @@ class PythonRunner:
                     target_path.write_text(content, encoding="utf-8")
 
             # Prepare controlled environment
-            env = {}
-            for key in self.allowed_env:
-                if key in os.environ:
-                    env[key] = os.environ[key]
+            env = os.environ.copy()
 
             start_time = time.time()
             
@@ -98,9 +95,6 @@ class PythonRunner:
             # Truncate output if too large
             if len(stdout.encode("utf-8")) > self.max_stdout:
                 stdout = stdout[:self.max_stdout] + "\n...[TRUNCATED]"
-            if len(stderr.encode("utf-8")) > self.max_stderr:
-                stderr = stderr[:self.max_stderr] + "\n...[TRUNCATED]"
-
             # Collect output files
             output_files = []
             if out_dir.exists():
@@ -116,7 +110,8 @@ class PythonRunner:
                 stderr=stderr,
                 duration_seconds=duration,
                 output_files=output_files,
-                error_info=error_info
+                error_info=error_info,
+                workspace_dir=str(Path(settings.ml.output_dir) / temp_path.name)
             )
 
         except (OSError, ValueError) as e:
@@ -125,8 +120,12 @@ class PythonRunner:
                 error_info=f"Runner encountered an error: {e}",
             )
         finally:
-            # Clean up temporary resources
+            # Clean up temporary resources, but preserve outputs if configured
             try:
+                if out_dir.exists():
+                    perm_out = Path(settings.ml.output_dir) / temp_path.name
+                    perm_out.mkdir(parents=True, exist_ok=True)
+                    shutil.copytree(out_dir, perm_out, dirs_exist_ok=True)
                 shutil.rmtree(temp_path, ignore_errors=True)
             except OSError as e:
                 logger.warning(f"Failed to clean up workspace {temp_path}: {e}")

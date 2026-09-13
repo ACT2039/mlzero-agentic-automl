@@ -47,12 +47,15 @@ class CoderAgent:
         if request.previous_code and request.error_context_json:
             prompt += (
                 "\n--- PREVIOUS FAILURE ---\n"
-                "Your previous attempt failed. Please diagnose the failure, preserve working parts, "
-                "apply the suggested correction, and produce a complete corrected program. "
-                "Avoid repeating the exact failed approach.\n"
-                f"Previous Code:\n{request.previous_code}\n\n"
-                f"Error Analysis:\n{request.error_context_json}\n"
-                f"Execution Result Summary:\n{request.previous_result_json}\n"
+                f"Code:\n```python\n{request.previous_code}\n```\n"
+                f"Error Context:\n{request.error_context_json}\n"
+            )
+            
+        if request.episodic_context_json:
+            prompt += (
+                "\n--- EPISODIC HISTORY ---\n"
+                f"{request.episodic_context_json}\n"
+                "Use this history to avoid repeating mistakes across multiple iterations.\n"
             )
             
         artifact = self.llm_client.generate_structured(prompt, CodeArtifact)
@@ -93,6 +96,7 @@ class ErrorAnalyzerAgent:
         # Ensure we cap the stderr/stdout to avoid massive logs in prompt
         stderr_sample = result.stderr[-2000:] if result.stderr else "No stderr."
         stdout_sample = result.stdout[-2000:] if result.stdout else "No stdout."
+        logger.error(f"Execution Error Stderr: {result.stderr}")
         
         prompt = (
             f"Analyze the following execution failure for Iteration {iteration}.\n"

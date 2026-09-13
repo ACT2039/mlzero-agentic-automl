@@ -12,10 +12,10 @@ class CodeGenerationRequest(BaseModel):
     user_instruction: str | None = Field(default=None, description="Optional user instruction.")
     coding_guidance: str | None = Field(default=None, description="Optional coding guidance.")
     
-    # Retry context
+    # Retry / Episodic context
     previous_code: str | None = Field(default=None, description="Previously generated code that failed.")
-    previous_result_json: str | None = Field(default=None, description="Serialized ExecutionResult of the failure.")
     error_context_json: str | None = Field(default=None, description="Serialized ErrorContext explaining the failure.")
+    episodic_context_json: str | None = Field(default=None, description="Serialized bounded Episodic Context.")
     
     # Semantic memory
     retrieved_knowledge_json: str | None = Field(default=None, description="Serialized RetrievedKnowledge.")
@@ -40,6 +40,7 @@ class ExecutionResult(BaseModel):
     duration_seconds: float = Field(default=0.0, description="Execution duration in seconds.")
     output_files: list[str] = Field(default_factory=list, description="Paths of files produced by execution.")
     error_info: str | None = Field(default=None, description="Error information if applicable.")
+    workspace_dir: str | None = Field(default=None, description="Path to the permanent output directory if persisted.")
 
 
 class ErrorContext(BaseModel):

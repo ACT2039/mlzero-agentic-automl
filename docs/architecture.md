@@ -57,11 +57,39 @@ Coder
 - **Limitations**: The current implementation utilizes a lightweight local TF-IDF index for dependency-free operation, meaning it relies on exact term matching rather than dense semantic embeddings (which would require downloading heavy model weights).
 
 ## 3. Episodic Memory
-Tracks the state of the current and past execution attempts to avoid repeating mistakes.
-- **Iteration History**: Maintains a log of each coding attempt.
-- **Previous Code**: Stores previously generated code for comparison.
-- **Execution Logs & Errors**: Keeps track of stdout/stderr from code execution.
-- **Error Summaries & Fix Suggestions**: Analyzes past failures to suggest corrections.
+"What happened during this run"
+
+Tracks the state of the current and past execution attempts to avoid repeating mistakes, ensuring the system iteratively converges on a solution.
+
+- **Iteration History**: Maintains a JSON log of each coding attempt in a persistent local store (no pickle).
+- **Previous Code**: Stores previously generated code.
+- **Execution Logs & Errors**: Keeps bounded snippets of stdout/stderr.
+- **Error Summaries & Fix Suggestions**: Analyzes past failures via the Error Analyzer to suggest corrections.
+- **Context Bounding**: Injects a strictly bounded `episodic_context_json` into the Coder to prevent prompt blowout.
+
+### Semantic vs. Episodic Memory
+
+These systems serve distinct purposes:
+- **Semantic Memory**: Static, domain-specific external knowledge ("How do I use this framework?").
+- **Episodic Memory**: Dynamic, run-specific chronological history ("What did I just try and why did it fail?").
+
+During a failed retry, they operate concurrently:
+
+```
+Perception
+   ↓
+Semantic Retrieval
+   ↓
+Coder
+   ↓
+Executor
+   ↓
+Error Analyzer
+   ↓
+Episodic Store
+   ↓
+Next iteration context
+```
 
 ## 4. Iterative Coding
 The core loop that generates, runs, and fixes code.

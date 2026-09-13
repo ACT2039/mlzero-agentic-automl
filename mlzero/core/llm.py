@@ -60,21 +60,43 @@ class MockLLMClient(LLMClient):
             )
             
         elif schema_name == "CodeArtifact":
+            import re
+            
+            train_path = 'train.csv'
+            test_path = 'test.csv'
+            files_match = re.search(r'"input_data_files":\s*\[(.*?)\]', prompt)
+            if files_match:
+                paths = re.findall(r'[\'"]([^\'"]+)[\'"]', files_match.group(1))
+                for p in paths:
+                    clean_p = p.replace('\\\\', '/').replace('\\', '/').replace('//', '/')
+                    if 'train.csv' in clean_p: train_path = clean_p
+                    if 'test.csv' in clean_p: test_path = clean_p
+            
             if "PREVIOUS FAILURE" in prompt:
-                # Iteration 2 (Recovery)
+                # Iteration 2+
                 code = (
-                    "import csv\n"
-                    "import os\n"
-                    "try:\n"
-                    "    with open('data.csv', 'r') as f:\n"
-                    "        reader = csv.reader(f)\n"
-                    "        headers = next(reader)\n"
-                    "        total = sum(int(row[1]) for row in reader)\n"
-                    "    os.makedirs('out', exist_ok=True)\n"
-                    "    with open('out/result.txt', 'w') as f:\n"
-                    "        f.write(str(total))\n"
-                    "except Exception as e:\n"
-                    "    print('Error:', e)\n"
+                    "import pandas as pd\n"
+                    "import json\n"
+                    "from autogluon.tabular import TabularPredictor\n"
+                    f"train_df = pd.read_csv('{train_path}')\n"
+                    f"test_df = pd.read_csv('{test_path}')\n"
+                    "predictor = TabularPredictor(label='target', path='out/models').fit(train_df, time_limit=10, presets='medium_quality')\n"
+                    "preds = predictor.predict(test_df)\n"
+                    "preds.to_csv('out/predictions.csv', index=False)\n"
+                    "metrics = predictor.evaluate(train_df)\n"
+                    "summary = {'success': True, 'model_path': 'out/models', 'metrics': metrics}\n"
+                    "with open('out/summary.json', 'w') as f:\n"
+                    "    json.dump(summary, f)\n"
+                    "print('SUCCESS')\n"
+                )
+            elif "Mock Objective" in prompt:
+                # Iteration 1 Failure
+                code = (
+                    "import pandas as pd\n"
+                    "from autogluon.tabular import TabularPredictor\n"
+                    f"train_df = pd.read_csv('{train_path}')\n"
+                    "# Intentional error: wrong label\n"
+                    "predictor = TabularPredictor(label='targt', path='out/models').fit(train_df, time_limit=10)\n"
                 )
             else:
                 # Iteration 1 (Deliberate failure: missing file or syntax error)
@@ -94,10 +116,10 @@ class MockLLMClient(LLMClient):
         elif schema_name == "ErrorContext":
             return schema(
                 iteration=1,
-                error_category="file_not_found",
-                error_message="FileNotFoundError: No such file or directory: 'missing_file.csv'",
-                stderr_excerpt="Traceback... FileNotFoundError",
-                suggested_fix="Change 'missing_file.csv' to the correct data file 'data.csv'."
+                error_category="KeyError",
+                error_message="KeyError: 'targt' not found in DataFrame.",
+                stderr_excerpt="Traceback... KeyError: 'targt'",
+                suggested_fix="Correct the label column name to 'target'."
             )
         elif schema_name == "SummaryResult":
             return schema(summary="Mock summary of documentation.")

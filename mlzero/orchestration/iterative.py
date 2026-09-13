@@ -3,6 +3,7 @@ Iterative Orchestrator for MLZero.
 Manages the retry loop between Coder, Executor, and Error Analyzer.
 """
 import time
+from typing import TYPE_CHECKING
 
 from mlzero.agents.coder import CoderAgent, ErrorAnalyzerAgent, ExecutorAgent
 from mlzero.core.config import settings
@@ -12,6 +13,8 @@ from mlzero.schemas.coder import CodeGenerationRequest
 from mlzero.schemas.orchestration import IterationRecord, IterativeRunResult
 from mlzero.schemas.perception import PerceptualContext
 
+if TYPE_CHECKING:
+    from mlzero.memory.episodic import EpisodicMemory
 logger = setup_logger(__name__)
 
 
@@ -24,16 +27,24 @@ class IterativeCodingOrchestrator:
         executor: ExecutorAgent,
         error_analyzer: ErrorAnalyzerAgent,
         max_iterations: int | None = None,
-        semantic_memory: "SemanticMemory | None" = None
+        semantic_memory: "SemanticMemory | None" = None,
+        episodic_memory: "EpisodicMemory | None" = None
     ):
         self.coder = coder
         self.executor = executor
         self.error_analyzer = error_analyzer
         self.max_iterations = max_iterations or settings.limits.max_iterations
         self.semantic_memory = semantic_memory
+        self.episodic_memory = episodic_memory
 
     def process(self, perceptual_context: PerceptualContext, user_instruction: str | None = None) -> IterativeRunResult:
         """Run the iterative loop."""
+        import uuid
+        run_id = str(uuid.uuid4())
+        
+        if self.episodic_memory:
+            self.episodic_memory.start_run(run_id, perceptual_context)
+            
         start_time = time.time()
         iteration_history = []
         
@@ -95,10 +106,22 @@ class IterativeCodingOrchestrator:
                         duration_seconds=duration
                     )
                 )
+                
+                if self.episodic_memory:
+                    self.episodic_memory.record_iteration(
+                        run_id=run_id,
+                        iteration=i,
+                        status="SUCCESS",
+                        artifact=artifact,
+                        result=result,
+                        retrieved_knowledge=knowledge if 'knowledge' in locals() else None,
+                        summary="Execution succeeded."
+                    )
+                
                 success = True
                 break
             else:
-                logger.warning(f"Iteration {i} failed.")
+                logger.warning(f"Iteration {i} failed. stderr: {result.stderr[:200] if result else 'none'}")
                 
                 # Analyze error
                 try:
@@ -128,18 +151,44 @@ class IterativeCodingOrchestrator:
                     except Exception as e:  # noqa: BLE001
                         logger.warning(f"Error-aware semantic memory retrieval failed: {e}")
                 
+                if self.episodic_memory:
+                    self.episodic_memory.record_iteration(
+                        run_id=run_id,
+                        iteration=i,
+                        status="FAIL",
+                        artifact=artifact,
+                        result=result,
+                        error_ctx=error_ctx,
+                        retrieved_knowledge=knowledge if 'knowledge' in locals() else None,
+                        summary="Execution failed."
+                    )
+                    
+                    try:
+                        import json
+                        episodic_context = self.episodic_memory.get_bounded_context(run_id)
+                        episodic_context_json = json.dumps(episodic_context)
+                    except Exception as e:  # noqa: BLE001
+                        logger.warning(f"Failed to get episodic context: {e}")
+                        episodic_context_json = None
+                else:
+                    episodic_context_json = None
+                
                 # Prepare for next iteration
                 current_request = CodeGenerationRequest(
                     perceptual_context_json=perceptual_context_json,
                     user_instruction=user_instruction,
                     previous_code=artifact.code,
-                    previous_result_json=result.model_dump_json(exclude={"stdout", "stderr"}),
                     error_context_json=error_ctx.model_dump_json(),
-                    retrieved_knowledge_json=retrieved_knowledge_json
+                    retrieved_knowledge_json=retrieved_knowledge_json,
+                    episodic_context_json=episodic_context_json
                 )
                 
         total_duration = time.time() - start_time
+        if self.episodic_memory:
+            self.episodic_memory.end_run(run_id, "SUCCESS" if success else "FAIL")
+            
         return IterativeRunResult(
+            run_id=run_id,
             success=success,
             total_iterations=len(iteration_history),
             final_code_artifact=final_artifact,

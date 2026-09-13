@@ -3,6 +3,7 @@ Configuration management using pydantic-settings and yaml.
 """
 
 import os
+import sys
 from pathlib import Path
 
 import yaml
@@ -33,6 +34,21 @@ class MemoryConfig(BaseModel):
     max_retrieved_context_chars: int = 4000
 
 
+class EpisodicConfig(BaseModel):
+    storage_dir: str = "memory/episodic"
+    max_episodes_in_context: int = 3
+    max_context_chars: int = 2000
+    max_stdout_stderr_chars: int = 500
+
+
+class MLConfig(BaseModel):
+    training_time_limit: int = 60  # very conservative for testing/demo
+    presets: str = "medium_quality"
+    output_dir: str = "outputs/models"
+    prediction_filename: str = "predictions.csv"
+    validation_handling: str = "auto"
+
+
 class LLMConfig(BaseModel):
     model: str = "gpt-4-turbo"
     temperature: float = 0.2
@@ -49,7 +65,7 @@ class ExecutionConfig(BaseModel):
     workspace_root: str = "outputs/workspaces"
     output_dir_name: str = "out"
     allowed_env_vars: list[str] = Field(default_factory=lambda: ["PATH", "SYSTEMROOT", "USERPROFILE"])
-    python_executable: str = "python"
+    python_executable: str = sys.executable
 
 
 class LimitsConfig(BaseModel):
@@ -86,6 +102,8 @@ class Settings(BaseSettings):
     storage: StorageConfig = StorageConfig()
     perception: PerceptionConfig = PerceptionConfig()
     memory: MemoryConfig = MemoryConfig()
+    episodic: EpisodicConfig = EpisodicConfig()
+    ml: MLConfig = MLConfig()
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
