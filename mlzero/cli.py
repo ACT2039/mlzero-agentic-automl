@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from mlzero.agents.perception import (
+    FileGroupingAgent,
     FilePerceptionAgent,
     LibrarySelectorAgent,
     TaskPerceptionAgent,
@@ -28,6 +29,7 @@ def parse_args() -> argparse.Namespace:
     run_parser = subparsers.add_parser("run", help="Run the full ML pipeline")
     run_parser.add_argument("--input", required=True, help="Path to input dataset directory")
     run_parser.add_argument("--instruction", help="Optional instruction describing the task")
+    run_parser.add_argument("--llm-mode", choices=["mock", "real"], help="LLM mode: mock (default, offline) or real (Gemini)")
     run_parser.add_argument("--mock-llm", action="store_true", help="Use mock LLM responses")
     run_parser.add_argument("--json", action="store_true", help="Output final result as JSON")
     
@@ -52,12 +54,15 @@ def parse_args() -> argparse.Namespace:
     perceive_parser = subparsers.add_parser("perceive", help="Run the perception phase only")
     perceive_parser.add_argument("--input", required=True, help="Path to input dataset directory")
     perceive_parser.add_argument("--instruction", help="Optional task instruction")
+    perceive_parser.add_argument("--llm-mode", choices=["mock", "real"], help="LLM mode: mock (default, offline) or real (Gemini)")
+    perceive_parser.add_argument("--mock-llm", action="store_true", help="Use mock LLM responses")
     perceive_parser.add_argument("--json", action="store_true", help="Output as JSON")
     
     # Iterate command (Legacy support)
     iterate_parser = subparsers.add_parser("iterate", help="Run the iterative coding phase")
     iterate_parser.add_argument("--perception-file", required=True, help="Path to saved perception JSON")
     iterate_parser.add_argument("--instruction", help="Optional task instruction")
+    iterate_parser.add_argument("--llm-mode", choices=["mock", "real"], help="LLM mode: mock (default, offline) or real (Gemini)")
     iterate_parser.add_argument("--mock-llm", action="store_true", help="Use mock LLM responses")
     
     # Memory command
@@ -83,6 +88,16 @@ def parse_args() -> argparse.Namespace:
     
     return parser.parse_args()
 
+
+def resolve_llm_mode(args: argparse.Namespace) -> str:
+    """Resolve LLM mode from CLI arguments, honoring --llm-mode and --mock-llm."""
+    if getattr(args, "llm_mode", None):
+        return str(args.llm_mode).lower()
+    if getattr(args, "mock_llm", False):
+        return "mock"
+    return getattr(settings, "llm_mode", "mock").lower()
+
+
 def handle_iterate(args: argparse.Namespace) -> int:
     """Handle the iterate command."""
     import json
@@ -97,8 +112,8 @@ def handle_iterate(args: argparse.Namespace) -> int:
         return 1
         
     try:
-        use_mock = getattr(args, "mock_llm", False)
-        llm_client = get_llm_client(use_mock=use_mock)
+        mode = resolve_llm_mode(args)
+        llm_client = get_llm_client(mode=mode)
         
         print("=== LOADING PERCEPTION ===")
         data = json.loads(perception_path.read_bytes())
@@ -112,9 +127,16 @@ def handle_iterate(args: argparse.Namespace) -> int:
         
         # Iteration
         print("\n=== RUNNING ITERATIVE CODING ===")
+        from mlzero.agents.coder import (
+            CoderAgent,
+            ErrorAnalyzerAgent,
+            ExecutionJudgeAgent,
+            ExecutorAgent,
+        )
         coder = CoderAgent(llm_client=llm_client)
         executor = ExecutorAgent()
         analyzer = ErrorAnalyzerAgent(llm_client=llm_client)
+        judge = ExecutionJudgeAgent(llm_client=llm_client)
         
         from mlzero.memory.semantic import SemanticMemory
         semantic_memory = SemanticMemory(llm_client=llm_client)
@@ -126,6 +148,7 @@ def handle_iterate(args: argparse.Namespace) -> int:
             coder=coder,
             executor=executor,
             error_analyzer=analyzer,
+            judge=judge,
             max_iterations=5,
             semantic_memory=semantic_memory,
             episodic_memory=ep_mem
@@ -155,7 +178,8 @@ def handle_run(args: argparse.Namespace) -> int:
     from mlzero.application.service import MLZeroService
     
     try:
-        service = MLZeroService(use_mock_llm=getattr(args, "mock_llm", False))
+        mode = resolve_llm_mode(args)
+        service = MLZeroService(llm_mode=mode)
         result = service.run_mlzero(
             dataset_path=args.input,
             user_instruction=getattr(args, "instruction", None)
@@ -382,26 +406,58 @@ def handle_perceive(args: argparse.Namespace) -> int:
         return 1
         
     try:
-        # Initialize LLM Client (Defaulting to mock for deterministic execution in Phase 2)
-        llm_client = get_llm_client(use_mock=True)
+        from mlzero.agents.perception import DataProfiler
+        # Initialize LLM Client
+        mode = resolve_llm_mode(args)
+        llm_client = get_llm_client(mode=mode)
+        
+        # 0. Deterministic Data Profiling
+        profiler = DataProfiler(input_path)
+        data_quality = profiler.profile(user_instruction=getattr(args, "instruction", None))
         
         # 1. File Perception
         file_agent = FilePerceptionAgent(dataset_dir=input_path)
         file_contexts = file_agent.process()
+
+        # 2. File Grouping (Stage 6)
+        grouping_agent = FileGroupingAgent(dataset_dir=input_path)
+        file_groups = grouping_agent.process(file_contexts)
         
-        # 2. Task Perception
+        # 3. Task Perception
         task_agent = TaskPerceptionAgent(llm_client=llm_client)
-        task_context = task_agent.process(file_contexts, args.instruction)
+        task_context = task_agent.process(
+            file_contexts,
+            getattr(args, "instruction", None),
+            data_quality=data_quality,
+            file_groups=file_groups,
+        )
         
-        # 3. Library Selection
+        # 4. Library Selection
         lib_agent = LibrarySelectorAgent(llm_client=llm_client)
         lib_selection = lib_agent.process(task_context, file_contexts)
         
+        # Collect modalities
+        detected_modalities = list(dict.fromkeys(fc.metadata.file_type for fc in file_contexts))
+        train_files = [fc.metadata.path for fc in file_contexts if "train" in Path(fc.metadata.path).stem.lower()]
+        test_files = [fc.metadata.path for fc in file_contexts if any(k in Path(fc.metadata.path).stem.lower() for k in ("test", "val"))]
+
         # Aggregate Context
         perceptual_context = PerceptualContext(
             files=file_contexts,
+            file_groups=file_groups,
+            modalities=detected_modalities,
+            train_files=train_files,
+            test_files=test_files,
             task=task_context,
-            library=lib_selection
+            task_type=task_context.task_type if task_context else None,
+            target_column=task_context.target_column if task_context else None,
+            timestamp_column=task_context.timestamp_column if task_context else None,
+            id_column=task_context.id_column if task_context else None,
+            candidate_targets=data_quality.candidate_targets if data_quality else [],
+            library=lib_selection,
+            selected_library=lib_selection.selected_library if lib_selection else None,
+            library_reason=lib_selection.explanation if lib_selection else None,
+            data_quality=data_quality,
         )
         
         # Output
@@ -421,6 +477,34 @@ def handle_perceive(args: argparse.Namespace) -> int:
                 print(f"Target:    {perceptual_context.task.target_column}")
             else:
                 print("Task context could not be determined.")
+
+            if perceptual_context.data_quality:
+                dq = perceptual_context.data_quality
+                print("\n--- Data Quality ---")
+                print(f"Rows:      {dq.row_count}")
+                print(f"Columns:   {', '.join(dq.column_names)}")
+                if dq.missing_values:
+                    print("Missing values:")
+                    for mv in dq.missing_values:
+                        print(f"  - {mv.column}: {mv.missing_count} rows ({mv.missing_pct}%)")
+                else:
+                    print("Missing values: None detected")
+                if dq.invalid_numeric_values:
+                    print("Invalid numeric values (non-numeric in numeric columns):")
+                    for inv in dq.invalid_numeric_values:
+                        print(f"  - {inv.column}: {inv.invalid_values} ({inv.invalid_count} occurrence(s))")
+                else:
+                    print("Invalid numeric values: None detected")
+                if dq.malformed_target_values:
+                    print(f"Malformed target values: {dq.malformed_target_values}")
+                else:
+                    print("Malformed target values: None detected")
+                if dq.train_test_schema_mismatches:
+                    print("Train/test schema mismatches:")
+                    for m in dq.train_test_schema_mismatches:
+                        print(f"  - {m}")
+                if dq.constant_columns:
+                    print(f"Constant columns: {dq.constant_columns}")
             
             print("\n--- Library Selection ---")
             if perceptual_context.library:

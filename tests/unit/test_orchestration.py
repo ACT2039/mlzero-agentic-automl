@@ -42,8 +42,8 @@ def test_error_analyzer_mock_llm():
     
     ctx = analyzer.process(art, res, iteration=2)
     assert isinstance(ctx, ErrorContext)
-    # The mock returns specific deterministic values:
-    assert ctx.error_category == "KeyError"
+    # The context-aware mock correctly extracts NameError from stderr:
+    assert ctx.error_category == "NameError"
     assert ctx.iteration == 2
 
 

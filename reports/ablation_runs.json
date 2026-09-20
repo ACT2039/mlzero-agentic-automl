@@ -1,0 +1,1139 @@
+[
+  {
+    "experiment_id": "abl_semantic_memory_OFF_case_01_tiny_cls_r1",
+    "component": "semantic_memory",
+    "variant": "OFF",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 7.195,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 5.142949104309082,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 0,
+    "actual_retrieved_k": 0
+  },
+  {
+    "experiment_id": "abl_semantic_memory_ON_case_01_tiny_cls_r1",
+    "component": "semantic_memory",
+    "variant": "ON",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 3,
+    "recovery": 2,
+    "total_time": 9.238,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 3,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 3,
+      "execution_time": 5.217458009719849,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_semantic_memory_OFF_case_03_house_price_faulty_r1",
+    "component": "semantic_memory",
+    "variant": "OFF",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": false,
+    "iterations": 10,
+    "recovery": 0,
+    "total_time": 21.533,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 3,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 4,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 5,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 6,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 7,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 8,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 9,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 10,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      }
+    ],
+    "metrics": {
+      "success": 0.0,
+      "iterations": 10,
+      "execution_time": 2.0145554542541504,
+      "error_category": "KeyError",
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 0,
+    "actual_retrieved_k": 0
+  },
+  {
+    "experiment_id": "abl_semantic_memory_ON_case_03_house_price_faulty_r1",
+    "component": "semantic_memory",
+    "variant": "ON",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": false,
+    "iterations": 10,
+    "recovery": 0,
+    "total_time": 19.467,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 3,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 4,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 5,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 6,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 7,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 8,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 9,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 10,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      }
+    ],
+    "metrics": {
+      "success": 0.0,
+      "iterations": 10,
+      "execution_time": 1.9733953475952148,
+      "error_category": "KeyError",
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_episodic_memory_OFF_case_03_house_price_faulty_r1",
+    "component": "episodic_memory",
+    "variant": "OFF",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": false,
+    "iterations": 10,
+    "recovery": 0,
+    "total_time": 20.693,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 3,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 4,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 5,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 6,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 7,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 8,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 9,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 10,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      }
+    ],
+    "metrics": {
+      "success": 0.0,
+      "iterations": 10,
+      "execution_time": 2.1323935985565186,
+      "error_category": "KeyError",
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_episodic_memory_ON_case_03_house_price_faulty_r1",
+    "component": "episodic_memory",
+    "variant": "ON",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.95,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.863835573196411,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_episodic_memory_OFF_case_01_tiny_cls_r1",
+    "component": "episodic_memory",
+    "variant": "OFF",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.257,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.629389762878418,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_episodic_memory_ON_case_01_tiny_cls_r1",
+    "component": "episodic_memory",
+    "variant": "ON",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.764,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.767023801803589,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_execution_judge_OFF_case_01_tiny_cls_r1",
+    "component": "execution_judge",
+    "variant": "OFF",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.877,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Judge disabled (raw exit code status)"
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Judge disabled (raw exit code status)"
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.862202167510986,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_execution_judge_ON_case_01_tiny_cls_r1",
+    "component": "execution_judge",
+    "variant": "ON",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.783,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.92833137512207,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_execution_judge_OFF_case_03_house_price_faulty_r1",
+    "component": "execution_judge",
+    "variant": "OFF",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 7.099,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Judge disabled (raw exit code status)"
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Judge disabled (raw exit code status)"
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.9340012073516846,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_execution_judge_ON_case_03_house_price_faulty_r1",
+    "component": "execution_judge",
+    "variant": "ON",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.944,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.854069948196411,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=0_case_01_tiny_cls_r1",
+    "component": "retrieval_k",
+    "variant": "K=0",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 7.218,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 5.137817144393921,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 0,
+    "actual_retrieved_k": 0
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=0_case_03_house_price_faulty_r1",
+    "component": "retrieval_k",
+    "variant": "K=0",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 7.312,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.165178537368774,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 0,
+    "actual_retrieved_k": 0
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=1_case_01_tiny_cls_r1",
+    "component": "retrieval_k",
+    "variant": "K=1",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.816,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.8680524826049805,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 1,
+    "actual_retrieved_k": 1
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=1_case_03_house_price_faulty_r1",
+    "component": "retrieval_k",
+    "variant": "K=1",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.303,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.5426113605499268,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 1,
+    "actual_retrieved_k": 1
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=3_case_01_tiny_cls_r1",
+    "component": "retrieval_k",
+    "variant": "K=3",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.374,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.480354309082031,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 3,
+    "actual_retrieved_k": 3
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=3_case_03_house_price_faulty_r1",
+    "component": "retrieval_k",
+    "variant": "K=3",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.217,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.5251035690307617,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 3,
+    "actual_retrieved_k": 3
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=5_case_01_tiny_cls_r1",
+    "component": "retrieval_k",
+    "variant": "K=5",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.488,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.71542763710022,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=5_case_03_house_price_faulty_r1",
+    "component": "retrieval_k",
+    "variant": "K=5",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.664,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.63588547706604,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=10_case_01_tiny_cls_r1",
+    "component": "retrieval_k",
+    "variant": "K=10",
+    "case_id": "case_01_tiny_cls",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.522,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.7321765422821045,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 10,
+    "actual_retrieved_k": 8
+  },
+  {
+    "experiment_id": "abl_retrieval_k_K=10_case_03_house_price_faulty_r1",
+    "component": "retrieval_k",
+    "variant": "K=10",
+    "case_id": "case_03_house_price_faulty",
+    "run_index": 1,
+    "success": true,
+    "iterations": 2,
+    "recovery": 1,
+    "total_time": 6.801,
+    "selected_library": "autogluon.tabular",
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: Execution failure."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.760657548904419,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "requested_k": 10,
+    "actual_retrieved_k": 8
+  }
+]

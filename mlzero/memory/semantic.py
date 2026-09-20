@@ -1,110 +1,124 @@
 """
 Semantic Memory interface for MLZero.
-Supports ingest, index, and retrieve.
+Coordinates offline ingestion (SummarizationAgent, CondensationAgent)
+and online retrieval (RetrievalAgent).
 """
 from pathlib import Path
+from typing import Any
 
 from mlzero.core.config import settings
 from mlzero.core.llm import LLMClient
 from mlzero.core.logger import setup_logger
 from mlzero.memory.index import SemanticIndex
-from mlzero.memory.ingestion import chunk_document, load_documents
-from mlzero.memory.summarization import DocumentationCondenser, DocumentationSummarizer
+from mlzero.memory.ingestion import ingest_knowledge_pipeline, load_documents
+from mlzero.memory.retrieval import RetrievalAgent
+from mlzero.memory.summarization import CondensationAgent, SummarizationAgent
 from mlzero.schemas.coder import ErrorContext
-from mlzero.schemas.memory import RetrievedKnowledge
+from mlzero.schemas.memory import LibraryKnowledgeRegistration, RetrievedKnowledge
 from mlzero.schemas.perception import PerceptualContext
 
 logger = setup_logger(__name__)
 
 
 class SemanticMemory:
-    """Interface for the Semantic Memory system."""
-    
+    """
+    Interface for the Semantic Memory system based on the MLZero NeurIPS 2025 architecture.
+    """
+
     def __init__(self, llm_client: LLMClient | None = None):
         self.llm_client = llm_client
         self.index = SemanticIndex()
         self.index_path = Path(settings.memory.index_path)
-        
+
+        # Three dedicated agents
+        self.summarizer = SummarizationAgent(self.llm_client) if self.llm_client else None
+        self.condenser = CondensationAgent(self.llm_client) if self.llm_client else None
+        self.retrieval_agent = RetrievalAgent(self.index)
+
+        # Library knowledge registry
+        self.registry: dict[str, LibraryKnowledgeRegistration] = {}
+
         if self.index_path.exists():
             try:
                 self.index.load(self.index_path)
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to load semantic index from {self.index_path}: {e}")
 
-    def ingest(self, knowledge_dir: str | Path, summarize: bool = False, condense: bool = False) -> None:
-        """Ingest documents, chunk them, and optionally summarize/condense."""
+    def register_library_knowledge(
+        self,
+        registration: LibraryKnowledgeRegistration | dict[str, Any],
+    ) -> None:
+        """Register an ML library's documentation metadata in the knowledge registry."""
+        if isinstance(registration, dict):
+            reg = LibraryKnowledgeRegistration(**registration)
+        else:
+            reg = registration
+        self.registry[reg.library_name] = reg
+        logger.info(f"Registered library knowledge for: {reg.library_name}")
+
+    def ingest(
+        self,
+        knowledge_dir: str | Path,
+        summarize: bool = False,
+        condense: bool = False,
+    ) -> None:
+        """
+        Ingest documents from a directory through the offline pipeline:
+        raw docs -> SummarizationAgent -> CondensationAgent -> index -> disk.
+        """
         knowledge_dir = Path(knowledge_dir)
         docs = load_documents(knowledge_dir)
-        
-        summarizer = DocumentationSummarizer(self.llm_client) if self.llm_client else None
-        condenser = DocumentationCondenser(self.llm_client) if self.llm_client else None
-        
-        all_chunks = []
-        for doc in docs:
-            chunks = chunk_document(doc)
-            
-            if summarize and summarizer:
-                for chunk in chunks:
-                    chunk.content = f"Summary: {summarizer.summarize(chunk)}\n\nOriginal: {chunk.content}"
-                    
-            if condense and condenser:
-                for chunk in chunks:
-                    chunk.content = condenser.condense(chunk)
-                    
-            all_chunks.extend(chunks)
-            
-        self.index.add(all_chunks)
-        self.index.save(self.index_path)
-        logger.info(f"Ingested {len(docs)} documents and {len(all_chunks)} chunks.")
 
-    def retrieve(self, perceptual_context: PerceptualContext, error_context: ErrorContext | None = None) -> RetrievedKnowledge:
-        """Retrieve relevant knowledge based on context and errors."""
-        query_parts = []
-        
-        # Build query from task
-        if perceptual_context.task:
-            if perceptual_context.task.objective:
-                query_parts.append(perceptual_context.task.objective)
-            if perceptual_context.task.task_type:
-                query_parts.append(perceptual_context.task.task_type)
-                
-        # Build query from error
-        if error_context:
-            query_parts.append(error_context.error_category)
-            query_parts.append(error_context.error_message)
-            query_parts.append(error_context.suggested_fix)
-            
-        query = " ".join(query_parts)
-        if not query.strip():
+        chunks = ingest_knowledge_pipeline(
+            documents=docs,
+            summarizer=self.summarizer,
+            condenser=self.condenser,
+            summarize=summarize,
+            condense=condense,
+        )
+
+        self.index.add(chunks)
+        self.index.save(self.index_path)
+        logger.info(f"Ingested {len(docs)} documents and {len(chunks)} chunks into semantic index.")
+
+    def ingest_library_docs(
+        self,
+        library_name: str,
+        docs_dir: str | Path,
+        version: str | None = None,
+        description: str = "",
+        summarize: bool = True,
+        condense: bool = True,
+    ) -> None:
+        """Register and ingest documentation for a specific ML library."""
+        reg = LibraryKnowledgeRegistration(
+            library_name=library_name,
+            version=version,
+            description=description,
+            documentation_path=str(docs_dir),
+        )
+        self.register_library_knowledge(reg)
+        self.ingest(docs_dir, summarize=summarize, condense=condense)
+
+    def retrieve(
+        self,
+        perceptual_context: PerceptualContext,
+        error_context: ErrorContext | None = None,
+        user_instruction: str | None = None,
+        iteration: int | None = None,
+        top_k: int | None = None,
+    ) -> RetrievedKnowledge:
+        """
+        Retrieve top-k relevant condensed knowledge chunks via the RetrievalAgent.
+        Default k = 5, matching the paper.
+        """
+        if not settings.memory.semantic_memory_enabled:
             return RetrievedKnowledge()
-            
-        library_filter = None
-        if perceptual_context.library and perceptual_context.library.selected_library:
-            library_filter = perceptual_context.library.selected_library
-            # Query often benefits from the library name itself
-            query += f" {library_filter}"
-            
-        top_k = settings.memory.retrieval_top_k
-        scored_chunks = self.index.search(query, top_k=top_k, library_filter=library_filter)
-        
-        max_chars = settings.memory.max_retrieved_context_chars
-        current_chars = 0
-        final_chunks = []
-        scores = []
-        sources = set()
-        
-        for chunk, score in scored_chunks:
-            chunk_len = len(chunk.content)
-            if current_chars + chunk_len > max_chars and current_chars > 0:
-                break
-                
-            final_chunks.append(chunk)
-            scores.append(score)
-            sources.add(chunk.source)
-            current_chars += chunk_len
-            
-        return RetrievedKnowledge(
-            chunks=final_chunks,
-            relevance_scores=scores,
-            sources=list(sources)
+
+        return self.retrieval_agent.retrieve(
+            perceptual_context=perceptual_context,
+            error_context=error_context,
+            user_instruction=user_instruction,
+            iteration=iteration,
+            top_k=top_k,
         )

@@ -1,0 +1,50 @@
+[
+  {
+    "noise_type": "missing_values",
+    "case_id": "case_01_tiny_cls_missing_values",
+    "run_id": "eval_ea7d6b61",
+    "success": true,
+    "task_type_correct": true,
+    "library_correct": true,
+    "iterations": 1,
+    "total_time": 5.14,
+    "error_category": null,
+    "recovery": 0
+  },
+  {
+    "noise_type": "malformed_numerics",
+    "case_id": "case_01_tiny_cls_malformed_numerics",
+    "run_id": "eval_02116951",
+    "success": true,
+    "task_type_correct": true,
+    "library_correct": true,
+    "iterations": 1,
+    "total_time": 4.947,
+    "error_category": null,
+    "recovery": 0
+  },
+  {
+    "noise_type": "extra_columns",
+    "case_id": "case_01_tiny_cls_extra_columns",
+    "run_id": "eval_f050a4ee",
+    "success": true,
+    "task_type_correct": true,
+    "library_correct": true,
+    "iterations": 2,
+    "total_time": 7.301,
+    "error_category": null,
+    "recovery": 1
+  },
+  {
+    "noise_type": "schema_mismatch",
+    "case_id": "case_01_tiny_cls_schema_mismatch",
+    "run_id": "eval_d166469b",
+    "success": true,
+    "task_type_correct": false,
+    "library_correct": true,
+    "iterations": 2,
+    "total_time": 6.28,
+    "error_category": null,
+    "recovery": 1
+  }
+]

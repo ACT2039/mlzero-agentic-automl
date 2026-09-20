@@ -1,89 +1,117 @@
-# Evaluation Methodology
+# MLZero Evaluation Methodology & Framework
 
 ## Overview
 
-The Phase 9 evaluation framework measures the performance of MLZero under
-controlled conditions using small public datasets and a deterministic mock LLM.
+The MLZero Evaluation Framework provides a systematic, scientifically reproducible evaluation methodology aligned with the **MLZero NeurIPS 2025** paper architecture.
+
+It measures pipeline success rates, error recovery, library selection accuracy, task perception accuracy, task-aware ML metrics, ablation contributions, retrieval depth effects, and data-noise robustness.
 
 ---
 
-## Experimental Configurations
+## Evaluation Architecture
 
-### Baseline (No Memory)
-
-- Perception → Coder → Executor
-- Semantic Memory: **disabled**
-- Episodic Memory: **disabled**
-
-Represents a naive LLM-based code generator without retrieval or history.
-
-### Ablation A: Semantic Memory
-
-- Configuration A: Semantic Memory **disabled**
-- Configuration B: Semantic Memory **enabled**
-
-Isolates the contribution of semantic retrieval to success rate and
-iteration count.
-
-### Ablation B: Episodic Memory
-
-- Configuration A: Episodic Memory **disabled**
-- Configuration B: Episodic Memory **enabled**
-
-Isolates the contribution of episodic history to error recovery.
-
-### Full System
-
-All components enabled:
-Perception → Semantic Memory → Coder → Executor → Error Analyzer → Episodic Memory → Retry
+```
+Benchmark Cases (10 Cross-Modality Datasets)
+                   │
+                   ▼
+  Evaluation Runner (`evaluation/runner.py`)
+    ├── Mode: smoke (Fast 1-run check)
+    ├── Mode: local_formal (3-Run Statistical Averaging)
+    ├── Mode: ablation (Memory, Judge, Retrieval Top-K)
+    ├── Mode: robustness (Controlled Data Noise Perturbations)
+    └── Mode: real_llm (Opt-in Gemini Evaluation)
+                   │
+                   ▼
+  MLZero Agentic Pipeline Engine
+                   │
+                   ▼
+  Statistical Aggregator (`evaluation/aggregator.py`)
+                   │
+                   ▼
+  Reports & Artifacts Generator (`evaluation/report.py`)
+    ├── reports/evaluation_summary.csv
+    ├── reports/evaluation_summary.json
+    └── reports/evaluation_report.md
+```
 
 ---
 
-## Datasets
+## 10 Benchmark Cross-Modality Evaluation Cases
 
-| Name | Type | Rows | Features | Source | License |
-|---|---|---|---|---|---|
-| binary_cls | Binary Classification | 100 | 2 | Synthetic (numpy) | Public Domain |
-| multi_cls | Multiclass Classification | 150 | 4 | Iris (sklearn) | BSD-3 |
-| regression | Regression | 442 | 10 | Diabetes (sklearn) | BSD-3 |
-
----
-
-## Metrics
-
-| Metric | Description |
-|---|---|
-| Success Rate | Proportion of runs that complete without system crash |
-| Avg Iterations | Mean number of code generation attempts |
-| Execution Time | Wall-clock time from submission to completion |
-| Recovery Rate | Proportion of initially-failed runs that recover |
-| ML Accuracy | AutoGluon accuracy on training data (classification) |
-| ML F1 | AutoGluon F1 on training data (classification) |
-| ML MAE | Mean Absolute Error (regression) — if available |
-| ML RMSE | Root Mean Squared Error (regression) — if available |
-
-Metrics marked "if available" may not be reported by AutoGluon for all
-configurations and are recorded as `null` rather than fabricated.
+| Case ID | Case Name | Modality | Task Type | Expected Library |
+|---|---|---|---|---|
+| `case_01_tiny_cls` | Tiny Tabular Classification | Tabular | `classification` | `autogluon.tabular` |
+| `case_02_tiny_reg` | Tiny Tabular Regression | Tabular | `regression` | `autogluon.tabular` |
+| `case_03_house_price_faulty` | House Price Faulty Data Quality | Tabular | `regression` | `autogluon.tabular` |
+| `case_04_tiny_timeseries` | Tiny Multi-Series Time-Series | Tabular | `time_series_forecasting` | `autogluon.timeseries` |
+| `case_05_tiny_image_cls` | Tiny Image Classification | Image | `multimodal` | `autogluon.multimodal` |
+| `case_06_tiny_text_cls` | Tiny Text Classification | Tabular | `classification` | `autogluon.tabular` |
+| `case_07_tiny_multimodal` | Tiny Multimodal Text & Tabular | Tabular | `classification` | `autogluon.tabular` |
+| `case_08_tiny_retrieval` | Tiny Dense Retrieval Corpus | JSON | `retrieval` | `FlagEmbedding` |
+| `case_09_readme_described` | README Described Task | Tabular | `classification` | `autogluon.tabular` |
+| `case_10_mixed_directory` | Mixed Directory Perception Case | Mixed | `classification` | `autogluon.tabular` |
 
 ---
 
-## Reproducibility
+## Evaluation Metrics
 
-All experiments use `mock_llm: true`. The mock LLM is deterministic:
+1. **Pipeline Metrics:**
+   - **Success Rate:** Proportion of runs completing successfully.
+   - **First-Attempt Success Rate:** Proportion of runs succeeding on iteration 1.
+   - **Recovery Rate:** `recovered_runs / initially_failed_runs` (returns `null` if no initial failures).
+   - **Average Iterations:** Mean number of code generation attempts.
+   - **Relative Time Efficiency:** `baseline_time / configuration_time`.
 
-- **Iteration 1**: generates code with deliberate label typo → `KeyError`
-- **Iteration 2**: generates corrected code → AutoGluon trains successfully
+2. **Perception Routing Metrics:**
+   - **Library Selection Accuracy:** `correct_library_selections / total_cases`.
+   - **Task Perception Accuracy:** `correct_task_type_perceptions / total_cases`.
+   - **Target Detection Accuracy:** `correct_target_detections / labeled_cases`.
 
-This makes every run an exact replay of the same failure-recovery scenario,
-enabling fair comparison across ablation configurations.
+3. **Task-Aware ML Quality Metrics:**
+   - **Classification:** Accuracy, F1, Balanced Accuracy, MCC.
+   - **Regression / Time-Series:** MAE, RMSE, $R^2$.
+   - **Retrieval:** Recall@K, Precision@K, MRR.
 
 ---
 
-## Limitations
+## Experimental Ablation Studies
 
-1. **Single-run results**: no multi-seed averaging due to time constraints.
-2. **Mock LLM only**: real LLM variability is not measured.
-3. **Tiny datasets**: results may not generalise to large datasets.
-4. **CPU-only**: no GPU acceleration; training times may be higher than
-   production systems.
-5. **No multi-user load testing**: the run manager is process-local.
+- **Ablation 1: Semantic Memory (ON vs OFF):** Measures the contribution of semantic knowledge retrieval to iteration reduction and ML quality.
+- **Ablation 2: Episodic Memory (ON vs OFF):** Measures the contribution of chronological error history to code recovery.
+- **Ablation 3: Execution Judge (ON vs OFF):** Measures the impact of LLM execution judgment vs. raw execution exit codes.
+- **Ablation 4: Retrieval Depth ($K \in \{0, 1, 3, 5, 10\}$):** Evaluates how retrieval depth impacts context relevance and code quality.
+
+---
+
+## Controlled Data Noise Robustness Framework
+
+Evaluates system resilience under 4 controlled dataset anomalies:
+1. `missing_values`: Blanks injected into feature columns.
+2. `malformed_numerics`: Strings ("N/A") injected into numeric columns.
+3. `extra_columns`: Irrelevant noise columns injected.
+4. `schema_mismatch`: Column mismatch between train and test splits.
+
+---
+
+## 3-Run Methodology & Reproducibility
+
+For formal local evaluation (`--mode local_formal`), the evaluator executes **3 independent runs per case** and aggregates metrics into mean $\pm$ std summaries.
+
+Every report automatically captures reproducibility metadata:
+- Timestamp (UTC)
+- Python Version
+- Operating System & Platform
+- Git Commit Hash
+- LLM Mode (`mock` or `real`)
+- Runs per case
+
+---
+
+## Comparison with MLZero NeurIPS 2025 Paper
+
+> [!IMPORTANT]
+> **Methodological Alignment vs. Local Benchmark Scale**
+> 
+> - **Paper Methodology:** The MLZero NeurIPS 2025 paper defines an agentic AutoML pipeline evaluated across complex Kaggle/OpenML benchmarks using multi-run averaging, relative time efficiency, and component ablations.
+> - **Our Implementation:** This evaluation framework reproduces the exact paper methodology (perception routing accuracy, 3-run statistical averaging, recovery rates, memory/judge ablations, retrieval top-k depth, data-noise robustness) using lightweight synthetic/faulty test fixtures suitable for a local environment.
+> - **No Benchmark Claims:** This evaluation measures paper-aligned local system performance and does NOT claim numerical identity with the paper's GPU-clustered benchmark scale.

@@ -42,8 +42,15 @@ class RunManager:
             if run_id in self._runs:
                 self._runs[run_id].status = "RUNNING"
                 
-        use_mock_llm = options.get("mock_llm", False)
-        service = MLZeroService(use_mock_llm=use_mock_llm)
+        llm_mode = options.get("llm_mode")
+        if llm_mode is not None:
+            use_mock_llm = (str(llm_mode).lower() == "mock")
+            service = MLZeroService(use_mock_llm=use_mock_llm, llm_mode=llm_mode)
+        elif "mock_llm" in options:
+            use_mock_llm = bool(options["mock_llm"])
+            service = MLZeroService(use_mock_llm=use_mock_llm)
+        else:
+            service = MLZeroService()
         try:
             result = service.run_mlzero(dataset_path, user_instruction, options)
             with self._lock:

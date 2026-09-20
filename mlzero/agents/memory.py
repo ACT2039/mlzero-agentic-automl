@@ -1,19 +1,25 @@
 """
-Memory components for MLZero.
-Includes interfaces for Semantic Memory and Episodic Memory.
+Memory agent components for MLZero.
+Includes the three paper-faithful agents:
+- SummarizationAgent
+- CondensationAgent
+- RetrievalAgent
 """
-
 from abc import ABC, abstractmethod
 from typing import Any
 
 from mlzero.core.logger import setup_logger
+from mlzero.memory.retrieval import RetrievalAgent
+from mlzero.memory.semantic import SemanticMemory
+from mlzero.memory.summarization import CondensationAgent, SummarizationAgent
 
 logger = setup_logger(__name__)
 
 
-class SemanticMemory(ABC):
+# Legacy abstract interfaces maintained for backwards compatibility
+class BaseSemanticMemory(ABC):
     """
-    Interface for Semantic Memory (Documentation ingestion, summarization, retrieval).
+    Abstract interface for Semantic Memory.
     """
 
     @abstractmethod
@@ -43,8 +49,8 @@ class EpisodicMemory(ABC):
         """Retrieve the most recent episodes."""
 
 
-class MockSemanticMemory(SemanticMemory):
-    """Placeholder implementation of SemanticMemory for Phase 1."""
+class MockSemanticMemory(BaseSemanticMemory):
+    """Placeholder implementation of SemanticMemory."""
 
     def ingest_document(self, document_id: str, content: str) -> bool:
         logger.info(f"Ingesting document: {document_id}")
@@ -52,11 +58,11 @@ class MockSemanticMemory(SemanticMemory):
 
     def retrieve(self, query: str) -> list[dict[str, Any]]:
         logger.info(f"Retrieving from semantic memory with query: {query}")
-        return [{"message": "Phase 1 placeholder for Semantic Memory Retrieval"}]
+        return [{"message": "Placeholder for Semantic Memory Retrieval"}]
 
 
 class MockEpisodicMemory(EpisodicMemory):
-    """Placeholder implementation of EpisodicMemory for Phase 1."""
+    """Placeholder implementation of EpisodicMemory."""
 
     def record_episode(self, episode_id: str, data: dict[str, Any]) -> bool:
         logger.info(f"Recording episode: {episode_id}")
@@ -69,3 +75,16 @@ class MockEpisodicMemory(EpisodicMemory):
     def get_recent_episodes(self, limit: int = 5) -> list[dict[str, Any]]:
         logger.info(f"Retrieving {limit} recent episodes")
         return []
+
+
+__all__ = [
+    "BaseSemanticMemory",
+    "CondensationAgent",
+    "EpisodicMemory",
+    "MockEpisodicMemory",
+    "MockSemanticMemory",
+    "RetrievalAgent",
+    "SemanticMemory",
+    "SummarizationAgent",
+]
+

@@ -29,25 +29,32 @@ class CodeArtifact(BaseModel):
     dependencies: list[str] = Field(default_factory=list, description="Requested dependencies.")
     generation_metadata: dict[str, Any] = Field(default_factory=dict, description="Metadata from LLM generation.")
     status: str = Field(default="generated", description="Status of the artifact.")
+    bash_script: str | None = Field(default=None, description="Optional setup or execution shell script.")
+    expected_output_files: list[str] = Field(default_factory=list, description="Expected output artifact files.")
 
 
 class ExecutionResult(BaseModel):
     """Result of running generated code."""
     success: bool = Field(..., description="Whether execution was successful.")
+    status: str = Field(default="SUCCESS", description="Execution outcome status: SUCCESS, FAILURE, TIMEOUT, INVALID_OUTPUT.")
     return_code: int | None = Field(default=None, description="Return code of the process.")
     stdout: str = Field(default="", description="Captured standard output.")
     stderr: str = Field(default="", description="Captured standard error.")
     duration_seconds: float = Field(default=0.0, description="Execution duration in seconds.")
     output_files: list[str] = Field(default_factory=list, description="Paths of files produced by execution.")
+    missing_expected_files: list[str] = Field(default_factory=list, description="Expected files that were not produced.")
     error_info: str | None = Field(default=None, description="Error information if applicable.")
     workspace_dir: str | None = Field(default=None, description="Path to the permanent output directory if persisted.")
+    timed_out: bool = Field(default=False, description="Whether the process timed out.")
 
 
 class ErrorContext(BaseModel):
     """Context for a failed execution."""
     iteration: int = Field(..., description="The iteration number when the error occurred.")
     error_category: str = Field(..., description="Classification of the error (e.g., syntax, runtime, dependency).")
+    error_summary: str | None = Field(default=None, description="Concise summary of the error.")
     error_message: str = Field(..., description="The core error message.")
     stderr_excerpt: str = Field(..., description="Relevant excerpt from standard error.")
     stdout_excerpt: str | None = Field(default=None, description="Relevant excerpt from standard output.")
     suggested_fix: str = Field(..., description="Actionable suggestion to fix the error.")
+

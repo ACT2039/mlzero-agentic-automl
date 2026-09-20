@@ -21,10 +21,17 @@ dependencies = [
     "gradio>=3.0.0",
     "httpx>=0.24.0",
     "scikit-learn>=1.4.0",
+    "pandas>=2.0.0",
+    "numpy>=1.26.0",
     "matplotlib>=3.7.0",
 ]
 
 [project.optional-dependencies]
+autogluon = [
+    "autogluon.tabular>=1.1.0",
+    "autogluon.multimodal>=1.1.0",
+    "autogluon.timeseries>=1.1.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -44,6 +51,7 @@ line-length = 88
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "--cov=mlzero --cov-report=term-missing"
 
 [tool.mypy]

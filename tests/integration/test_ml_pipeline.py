@@ -7,7 +7,8 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from mlzero.tools.tabular import TabularDatasetAdapter
+from mlzero.schemas.perception import LibrarySelection, PerceptualContext
+from mlzero.tools.adapters.tabular import TabularAdapter
 
 
 @pytest.fixture
@@ -17,11 +18,11 @@ def tiny_dataset():
         pytest.skip("Tiny dataset not found.")
     return data_dir
 
-
 def test_dataset_adapter(tiny_dataset):
     with TemporaryDirectory() as workspace:
-        adapter = TabularDatasetAdapter(tiny_dataset, workspace)
-        result = adapter.prepare_data()
+        adapter = TabularAdapter()
+        ctx = PerceptualContext(library=LibrarySelection(selected_library="autogluon.tabular", explanation="test"))
+        result = adapter.prepare_data(tiny_dataset, Path(workspace), ctx)
         
         assert "train_path" in result
         assert "test_path" in result

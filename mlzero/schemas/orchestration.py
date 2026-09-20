@@ -1,6 +1,8 @@
 """
 Schemas for orchestration (iteration and workflow).
 """
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from mlzero.schemas.coder import CodeArtifact, ErrorContext, ExecutionResult
@@ -12,6 +14,8 @@ class IterationRecord(BaseModel):
     code_artifact: CodeArtifact | None = Field(default=None, description="The generated code artifact.")
     execution_result: ExecutionResult | None = Field(default=None, description="The execution result.")
     error_context: ErrorContext | None = Field(default=None, description="Error analysis if execution failed.")
+    judge_decision: str | None = Field(default=None, description="Execution judge decision ('FINISH' or 'FIX').")
+    judge_reason: str | None = Field(default=None, description="Reason for the judge's decision.")
     duration_seconds: float = Field(default=0.0, description="Total duration of this iteration.")
 
 
@@ -25,3 +29,5 @@ class IterativeRunResult(BaseModel):
     iteration_history: list[IterationRecord] = Field(default_factory=list, description="History of all iterations.")
     final_error_context: ErrorContext | None = Field(default=None, description="Final error context if pipeline failed.")
     total_duration_seconds: float = Field(default=0.0, description="Total duration of the pipeline.")
+    judge_decisions: list[dict[str, Any]] = Field(default_factory=list, description="Structured judge decisions.")
+    pipeline_trace: dict[str, Any] = Field(default_factory=dict, description="Pipeline step execution trace.")

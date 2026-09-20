@@ -26,21 +26,31 @@ class EpisodicStore:
         return self.storage_dir / f"{run_id}.json"
         
     def save_run_history(self, run: RunHistory) -> None:
-        """Save a complete run history to disk."""
+        """Save a complete run history to disk atomically."""
         path = self._get_run_path(run.run_id)
+        temp_path = path.with_suffix(".tmp")
         try:
-            path.write_text(run.model_dump_json(indent=2), encoding="utf-8")
+            temp_path.write_text(run.model_dump_json(indent=2), encoding="utf-8")
+            temp_path.replace(path)
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to save run history {run.run_id}: {e}")
-            
+            try:
+                temp_path.unlink()
+            except OSError as err:
+                logger.debug(f"Failed to clean up temporary file {temp_path}: {err}")
+
     def get_run_history(self, run_id: str) -> RunHistory | None:
-        """Load a run history from disk."""
+        """Load a run history from disk safely."""
         path = self._get_run_path(run_id)
         if not path.exists():
             return None
-            
+
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
+            content = path.read_text(encoding="utf-8")
+            if not content.strip():
+                logger.warning(f"Run history file for {run_id} is empty.")
+                return None
+            data = json.loads(content)
             return RunHistory(**data)
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to load run history {run_id}: {e}")

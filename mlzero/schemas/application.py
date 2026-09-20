@@ -26,6 +26,10 @@ class RunStatusResponse(BaseModel):
     model_artifact_reference: str | None = Field(default=None, description="Path or reference to the trained model.")
     execution_duration: float | None = Field(default=None, description="Duration in seconds.")
     final_error: str | None = Field(default=None, description="Final error context if unsuccessful.")
+    judge_decisions: list[dict[str, Any]] = Field(default_factory=list, description="Judge decisions per iteration.")
+    pipeline_trace: dict[str, Any] = Field(default_factory=dict, description="Pipeline execution step trace.")
+    execution_backend: str = Field(default="mock", description="Backend execution mode (mock or real).")
+    adapter_info: dict[str, Any] = Field(default_factory=dict, description="Adapter validation and execution details.")
 
 
 class ErrorResponse(BaseModel):

@@ -1,0 +1,8 @@
+{
+  "query": "What is MLZero Agentic AutoML?",
+  "documents": [
+    "MLZero is an agentic framework for machine learning development based on NeurIPS 2025.",
+    "AutoGluon Tabular automates tabular classification and regression.",
+    "FlagEmbedding provides dense retrieval and reranking models."
+  ]
+}

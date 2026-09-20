@@ -36,9 +36,19 @@ class SemanticIndex:
         return tf
         
     def add(self, chunks: list[KnowledgeChunk]) -> None:
-        """Add chunks to the index."""
+        """Add chunks to the index, indexing content, summary, and condensed guidance."""
         for chunk in chunks:
-            tokens = tokenize(chunk.content)
+            # Combine content, summary, condensed guidance, and tags for indexing
+            text_parts = [chunk.content]
+            if chunk.summary:
+                text_parts.append(chunk.summary)
+            if chunk.condensed_guidance:
+                text_parts.append(chunk.condensed_guidance)
+            if chunk.tags:
+                text_parts.extend(chunk.tags)
+
+            indexable_text = " ".join(text_parts)
+            tokens = tokenize(indexable_text)
             if not tokens:
                 continue
                 
@@ -52,7 +62,13 @@ class SemanticIndex:
                 
             self.chunks.append(chunk)
 
-    def search(self, query: str, top_k: int = 3, library_filter: str | None = None) -> list[tuple[KnowledgeChunk, float]]:
+    def rebuild(self, chunks: list[KnowledgeChunk]) -> None:
+        """Clear and rebuild the entire index."""
+        self.chunks.clear()
+        self.doc_freqs.clear()
+        self.add(chunks)
+
+    def search(self, query: str, top_k: int = 5, library_filter: str | None = None) -> list[tuple[KnowledgeChunk, float]]:
         """Search the index for relevant chunks."""
         if not self.chunks:
             return []

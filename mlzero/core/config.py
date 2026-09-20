@@ -39,15 +39,21 @@ class MemoryConfig(BaseModel):
     max_document_size_bytes: int = 1024 * 1024  # 1MB
     embedding_backend: str = "tfidf"
     index_path: str = "knowledge/index.json"
-    retrieval_top_k: int = 3
+    retrieval_top_k: int = 5
     max_retrieved_context_chars: int = 4000
+    semantic_memory_enabled: bool = True
 
 
 class EpisodicConfig(BaseModel):
     storage_dir: str = "memory/episodic"
-    max_episodes_in_context: int = 3
-    max_context_chars: int = 2000
-    max_stdout_stderr_chars: int = 500
+    max_episodes_in_context: int = 5
+    max_context_chars: int = 4000
+    max_stdout_stderr_chars: int = 1500
+    max_stored_code_chars: int = 10000
+    max_stdout_chars: int = 5000
+    max_stderr_chars: int = 5000
+    max_retrieved_knowledge_chars: int = 4000
+
 
 
 class MLConfig(BaseModel):
@@ -59,7 +65,9 @@ class MLConfig(BaseModel):
 
 
 class LLMConfig(BaseModel):
-    model: str = "gpt-4-turbo"
+    model: str = "gemini-3.8-flash"
+    provider: str = "gemini"
+    mode: str = "mock"
     temperature: float = 0.2
     max_tokens: int = 4096
     timeout: int = 30
@@ -75,6 +83,7 @@ class ExecutionConfig(BaseModel):
     output_dir_name: str = "out"
     allowed_env_vars: list[str] = Field(default_factory=lambda: ["PATH", "SYSTEMROOT", "USERPROFILE"])
     python_executable: str = sys.executable
+    keep_artifacts: bool = True
 
 
 class LimitsConfig(BaseModel):
@@ -100,6 +109,11 @@ class Settings(BaseSettings):
     Main settings class. Reads from environment variables (.env) and yaml configs.
     """
     openai_api_key: str = ""
+    gemini_api_key: str = ""
+    llm_mode: str = "mock"
+    real_llm_provider: str = "gemini"
+    real_llm_model: str = "gemini-3.8-flash"
+    real_llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
     hf_token: str = ""
     environment: str = "development"
 
