@@ -452,10 +452,29 @@ class MockLLMClient(LLMClient):
         raise NotImplementedError(f"Mock response not configured for {schema_name}")
 
 
-class RealLLMClient(LLMClient):
-    """
-    Real LLM Client using Google Gemini via OpenAI-compatible endpoint.
-    """
+class LLMError(RuntimeError):
+    """Base exception for LLM client failures."""
+
+
+class TransientLLMError(LLMError):
+    """Exception for transient/retryable provider failures (e.g. 429, 500, 502, 503, 504, timeout)."""
+
+
+class PermanentLLMError(LLMError):
+    """Exception for non-retryable provider failures (e.g. 401 Unauthorized, 400 Bad Request)."""
+
+
+def sanitize_secrets(text: str, keys: list[str]) -> str:
+    """Sanitize occurrences of secret API keys from text or exception messages."""
+    result = text
+    for key in keys:
+        if key and len(key) > 4 and key in result:
+            result = result.replace(key, "[REDACTED]")
+    return result
+
+
+class GeminiProviderClient(LLMClient):
+    """Direct Google Gemini LLM Client using OpenAI-compatible endpoint."""
 
     def __init__(
         self,
@@ -469,9 +488,8 @@ class RealLLMClient(LLMClient):
 
         self.api_key = api_key or settings.gemini_api_key
         if not self.api_key:
-            raise ValueError(
-                "Gemini API key is required for RealLLMClient. "
-                "Set GEMINI_API_KEY in environment or .env file."
+            raise PermanentLLMError(
+                "Gemini API key is required. Set GEMINI_API_KEY in environment or .env file."
             )
         self.model = model or settings.real_llm_model or settings.llm.model
         raw_url = base_url or settings.real_llm_base_url
@@ -480,13 +498,9 @@ class RealLLMClient(LLMClient):
         self.retry_count = retry_count or settings.llm.retry_count
 
     def _sanitize(self, text: str) -> str:
-        """Sanitize any occurrence of the API key from text or exceptions."""
-        if self.api_key and self.api_key in text:
-            return text.replace(self.api_key, "[REDACTED]")
-        return text
+        return sanitize_secrets(text, [self.api_key])
 
     def generate_text(self, prompt: str) -> str:
-        """Generate text from Gemini via OpenAI-compatible endpoint."""
         url = f"{self.base_url}chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -494,9 +508,7 @@ class RealLLMClient(LLMClient):
         }
         payload = {
             "model": self.model,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
+            "messages": [{"role": "user", "content": prompt}],
         }
 
         last_error: Exception | None = None
@@ -509,27 +521,26 @@ class RealLLMClient(LLMClient):
                     return str(data["choices"][0]["message"]["content"])
             except httpx.HTTPStatusError as e:
                 last_error = e
-                if e.response.status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
+                status_code = e.response.status_code
+                if status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
                     time.sleep(2 ** attempt)
                     continue
-                msg = self._sanitize(f"HTTP error {e.response.status_code}: {e.response.text}")
-                raise RuntimeError(f"Real LLM request failed: {msg}") from None
+                msg = self._sanitize(f"Gemini HTTP {status_code}: {e.response.text}")
+                if status_code in (429, 500, 502, 503, 504):
+                    raise TransientLLMError(f"Gemini request failed: {msg}") from None
+                raise PermanentLLMError(f"Gemini request failed: {msg}") from None
             except Exception as e:  # noqa: BLE001
                 last_error = e
                 if attempt < self.retry_count - 1:
                     time.sleep(2 ** attempt)
                     continue
                 msg = self._sanitize(str(e))
-                raise RuntimeError(f"Real LLM request failed: {msg}") from None
+                raise TransientLLMError(f"Gemini request failed: {msg}") from None
 
         msg = self._sanitize(str(last_error))
-        raise RuntimeError(f"Real LLM request failed after {self.retry_count} attempts: {msg}") from None
+        raise TransientLLMError(f"Gemini request failed after {self.retry_count} attempts: {msg}") from None
 
     def generate_structured(self, prompt: str, schema: type[T]) -> T:
-        """
-        Generate structured output from Gemini matching a Pydantic schema.
-        Retries on JSON decoding, schema validation failure, or transient HTTP errors.
-        """
         url = f"{self.base_url}chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -560,7 +571,6 @@ class RealLLMClient(LLMClient):
                     data = response.json()
                     raw_content = str(data["choices"][0]["message"]["content"])
 
-                # Clean markdown fences if present
                 clean_content = raw_content.strip()
                 match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", clean_content, re.DOTALL)
                 if match:
@@ -569,14 +579,16 @@ class RealLLMClient(LLMClient):
                 return schema.model_validate_json(clean_content)
             except httpx.HTTPStatusError as e:
                 last_error = e
-                if e.response.status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
+                status_code = e.response.status_code
+                if status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
                     time.sleep(2 ** attempt)
                     continue
-                msg = self._sanitize(f"HTTP error {e.response.status_code}: {e.response.text}")
-                raise RuntimeError(f"Real LLM structured generation failed: {msg}") from None
+                msg = self._sanitize(f"Gemini HTTP {status_code}: {e.response.text}")
+                if status_code in (429, 500, 502, 503, 504):
+                    raise TransientLLMError(f"Gemini structured generation failed: {msg}") from None
+                raise PermanentLLMError(f"Gemini structured generation failed: {msg}") from None
             except Exception as e:  # noqa: BLE001
                 last_error = e
-                # Update messages in retry to remind strict JSON adherence
                 if attempt < self.retry_count - 1:
                     time.sleep(1)
                     payload["messages"].append(
@@ -587,12 +599,266 @@ class RealLLMClient(LLMClient):
                     )
 
         msg = self._sanitize(str(last_error))
-        raise RuntimeError(
-            f"Real LLM failed to generate valid structured response after {self.retry_count} attempts: {msg}"
+        raise TransientLLMError(
+            f"Gemini failed to generate valid structured response after {self.retry_count} attempts: {msg}"
         ) from None
 
 
-def get_llm_client(use_mock: bool | None = None, mode: str | None = None) -> LLMClient:
+class OpenRouterProviderClient(LLMClient):
+    """OpenRouter LLM Client using OpenAI-compatible endpoint."""
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+        timeout: int | None = None,
+        retry_count: int | None = None,
+    ):
+        from mlzero.core.config import settings
+
+        self.api_key = api_key or settings.openrouter_api_key
+        if not self.api_key:
+            raise PermanentLLMError(
+                "OpenRouter API key is required. Set OPENROUTER_API_KEY in environment or .env file."
+            )
+        self.model = model or settings.openrouter_model or "google/gemini-3.8-flash"
+        raw_url = base_url or settings.openrouter_base_url or "https://openrouter.ai/api/v1"
+        self.base_url = raw_url.rstrip("/") + "/"
+        self.timeout = timeout or settings.llm.timeout
+        self.retry_count = retry_count or settings.llm.retry_count
+
+    def _sanitize(self, text: str) -> str:
+        return sanitize_secrets(text, [self.api_key])
+
+    def generate_text(self, prompt: str) -> str:
+        url = f"{self.base_url}chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/mlzero-agentic-automl",
+            "X-Title": "MLZero Agentic AutoML",
+        }
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        last_error: Exception | None = None
+        for attempt in range(self.retry_count):
+            try:
+                with httpx.Client(timeout=float(self.timeout)) as client:
+                    response = client.post(url, headers=headers, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    return str(data["choices"][0]["message"]["content"])
+            except httpx.HTTPStatusError as e:
+                last_error = e
+                status_code = e.response.status_code
+                if status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                msg = self._sanitize(f"OpenRouter HTTP {status_code}: {e.response.text}")
+                if status_code in (429, 500, 502, 503, 504):
+                    raise TransientLLMError(f"OpenRouter request failed: {msg}") from None
+                raise PermanentLLMError(f"OpenRouter request failed: {msg}") from None
+            except Exception as e:  # noqa: BLE001
+                last_error = e
+                if attempt < self.retry_count - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                msg = self._sanitize(str(e))
+                raise TransientLLMError(f"OpenRouter request failed: {msg}") from None
+
+        msg = self._sanitize(str(last_error))
+        raise TransientLLMError(f"OpenRouter request failed after {self.retry_count} attempts: {msg}") from None
+
+    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+        url = f"{self.base_url}chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/mlzero-agentic-automl",
+            "X-Title": "MLZero Agentic AutoML",
+        }
+        schema_json = json.dumps(schema.model_json_schema(), indent=2)
+        system_instruction = (
+            "You are a helpful AI assistant that outputs strictly valid JSON matching the following JSON Schema.\n"
+            f"JSON Schema:\n{schema_json}\n"
+            "Do NOT include any markdown formatting, do NOT wrap the output in ```json ... ```, and output ONLY the raw JSON object."
+        )
+
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt},
+            ],
+            "response_format": {"type": "json_object"},
+        }
+
+        last_error: Exception | None = None
+        for attempt in range(self.retry_count):
+            try:
+                with httpx.Client(timeout=float(self.timeout)) as client:
+                    response = client.post(url, headers=headers, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    raw_content = str(data["choices"][0]["message"]["content"])
+
+                clean_content = raw_content.strip()
+                match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", clean_content, re.DOTALL)
+                if match:
+                    clean_content = match.group(1)
+
+                return schema.model_validate_json(clean_content)
+            except httpx.HTTPStatusError as e:
+                last_error = e
+                status_code = e.response.status_code
+                if status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                msg = self._sanitize(f"OpenRouter HTTP {status_code}: {e.response.text}")
+                if status_code in (429, 500, 502, 503, 504):
+                    raise TransientLLMError(f"OpenRouter structured generation failed: {msg}") from None
+                raise PermanentLLMError(f"OpenRouter structured generation failed: {msg}") from None
+            except Exception as e:  # noqa: BLE001
+                last_error = e
+                if attempt < self.retry_count - 1:
+                    time.sleep(1)
+                    payload["messages"].append(
+                        {
+                            "role": "user",
+                            "content": f"The previous response failed validation: {self._sanitize(str(e))}. Please output valid JSON matching the schema strictly.",
+                        }
+                    )
+
+        msg = self._sanitize(str(last_error))
+        raise TransientLLMError(
+            f"OpenRouter failed to generate valid structured response after {self.retry_count} attempts: {msg}"
+        ) from None
+
+
+class FallbackLLMClient(LLMClient):
+    """
+    LLM Client wrapping a primary provider and an optional fallback provider.
+    Automatically falls back to secondary provider on transient errors (429, 500, 502, 503, 504, timeout).
+    """
+
+    def __init__(self, primary: LLMClient, fallback: LLMClient | None = None):
+        self.primary = primary
+        self.fallback = fallback
+
+    def generate_text(self, prompt: str) -> str:
+        try:
+            return self.primary.generate_text(prompt)
+        except TransientLLMError as e:
+            if self.fallback is not None:
+                from mlzero.core.logger import setup_logger
+                logger = setup_logger(__name__)
+                logger.warning(
+                    f"Primary LLM provider failed with transient error: {e}. Falling back to secondary provider..."
+                )
+                try:
+                    return self.fallback.generate_text(prompt)
+                except Exception as fallback_err:  # noqa: BLE001
+                    raise RuntimeError(
+                        f"Both LLM providers failed. Primary error: {e} | Fallback error: {fallback_err}"
+                    ) from None
+            raise
+
+    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+        try:
+            return self.primary.generate_structured(prompt, schema)
+        except TransientLLMError as e:
+            if self.fallback is not None:
+                from mlzero.core.logger import setup_logger
+                logger = setup_logger(__name__)
+                logger.warning(
+                    f"Primary LLM provider structured generation failed with transient error: {e}. Falling back to secondary provider..."
+                )
+                try:
+                    return self.fallback.generate_structured(prompt, schema)
+                except Exception as fallback_err:  # noqa: BLE001
+                    raise RuntimeError(
+                        f"Both LLM providers failed structured generation. Primary error: {e} | Fallback error: {fallback_err}"
+                    ) from None
+            raise
+
+
+class RealLLMClient(LLMClient):
+    """
+    Backwards-compatible Real LLM Client supporting Gemini, OpenRouter, and fallback logic.
+    """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+        timeout: int | None = None,
+        retry_count: int | None = None,
+        provider: str | None = None,
+    ):
+        from mlzero.core.config import settings
+
+        selected_provider = (provider or settings.real_llm_provider or "gemini").lower()
+        
+        primary_client: LLMClient
+        fallback_client: LLMClient | None = None
+
+        if selected_provider == "openrouter":
+            primary_client = OpenRouterProviderClient(
+                api_key=api_key or settings.openrouter_api_key or None,
+                model=model or settings.openrouter_model or "google/gemini-3.8-flash",
+                base_url=base_url or settings.openrouter_base_url,
+                timeout=timeout,
+                retry_count=retry_count,
+            )
+            # Fallback to Gemini if key available
+            if settings.gemini_api_key and settings.gemini_api_key.strip():
+                try:
+                    fallback_client = GeminiProviderClient(timeout=timeout, retry_count=retry_count)
+                except Exception:  # noqa: BLE001
+                    fallback_client = None
+        else:
+            # Default to Gemini
+            primary_client = GeminiProviderClient(
+                api_key=api_key or settings.gemini_api_key or None,
+                model=model or settings.real_llm_model or settings.llm.model,
+                base_url=base_url or settings.real_llm_base_url,
+                timeout=timeout,
+                retry_count=retry_count,
+            )
+            # Fallback to OpenRouter if key available
+            if settings.openrouter_api_key and settings.openrouter_api_key.strip():
+                try:
+                    fallback_client = OpenRouterProviderClient(timeout=timeout, retry_count=retry_count)
+                except Exception:  # noqa: BLE001
+                    fallback_client = None
+
+        self._client = FallbackLLMClient(primary=primary_client, fallback=fallback_client)
+
+    @property
+    def primary(self) -> LLMClient:
+        return self._client.primary
+
+    @property
+    def fallback(self) -> LLMClient | None:
+        return self._client.fallback
+
+    def generate_text(self, prompt: str) -> str:
+        return self._client.generate_text(prompt)
+
+    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+        return self._client.generate_structured(prompt, schema)
+
+
+def get_llm_client(
+    use_mock: bool | None = None,
+    mode: str | None = None,
+    provider: str | None = None,
+) -> LLMClient:
     """Factory to get the appropriate LLM client."""
     from mlzero.core.config import settings
 
@@ -607,7 +873,7 @@ def get_llm_client(use_mock: bool | None = None, mode: str | None = None) -> LLM
     if resolved_mode == "mock":
         return MockLLMClient()
     elif resolved_mode == "real":
-        return RealLLMClient()
+        return RealLLMClient(provider=provider)
     else:
         raise ValueError(f"Unknown LLM mode: '{resolved_mode}'. Must be 'mock' or 'real'.")
 

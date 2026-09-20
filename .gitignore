@@ -44,3 +44,4 @@ htmlcov/
 .coverage
 test_venv/
 *.egg-info/
+scratch/
