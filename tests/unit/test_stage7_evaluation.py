@@ -285,9 +285,9 @@ def test_21_reproducibility_metadata():
     assert meta.evaluator_version == "1.0.0"
 
 
-def test_22_mock_llm_evaluation_suite():
+def test_22_mock_llm_evaluation_suite(tmp_path):
     """22. Test execution of MockLLM smoke evaluation suite."""
-    suite_res = run_evaluation_suite(mode="smoke", runs_per_case=1, use_mock_llm=True)
+    suite_res = run_evaluation_suite(mode="smoke", runs_per_case=1, use_mock_llm=True, output_dir=str(tmp_path))
     assert suite_res.overall_success_rate >= 0.0
     assert len(suite_res.cases) >= 1
 

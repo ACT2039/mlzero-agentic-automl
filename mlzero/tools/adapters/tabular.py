@@ -5,6 +5,7 @@ from typing import Any
 from mlzero.core.logger import setup_logger
 from mlzero.schemas.perception import PerceptualContext
 from mlzero.tools.adapters.base import MLLibraryAdapter
+from mlzero.utils.metrics import canonicalize_metrics
 
 logger = setup_logger(__name__)
 
@@ -21,18 +22,43 @@ class TabularAdapter(MLLibraryAdapter):
         """Find a file like train.csv, train.tsv, etc."""
         if not directory.exists():
             return None
+        # 1. Exact match
         for file in directory.iterdir():
             if file.is_file() and file.stem.lower() in stem_candidates and file.suffix.lower() in ['.csv', '.tsv']:
+                return file
+        # 2. Substring match
+        for file in directory.iterdir():
+            if file.is_file() and any(c in file.stem.lower() for c in stem_candidates) and file.suffix.lower() in ['.csv', '.tsv']:
                 return file
         return None
 
     def validate_inputs(self, raw_input_dir: Path, perceptual_context: PerceptualContext) -> bool:
         train_file = self._find_file(raw_input_dir, ['train', 'data', 'dataset'])
-        return train_file is not None
+        if train_file is not None:
+            return True
+        if raw_input_dir.exists() and raw_input_dir.is_dir():
+            candidates = [
+                f for f in raw_input_dir.iterdir()
+                if f.is_file() and f.suffix.lower() in ['.csv', '.tsv']
+            ]
+            non_test = [f for f in candidates if not any(k in f.stem.lower() for k in ('test', 'val', 'validation'))]
+            return len(non_test) > 0 or len(candidates) > 0
+        return False
 
     def prepare_data(self, raw_input_dir: Path, workspace_dir: Path, perceptual_context: PerceptualContext) -> dict[str, Any]:
         train_file = self._find_file(raw_input_dir, ['train', 'data', 'dataset'])
         test_file = self._find_file(raw_input_dir, ['test', 'validation', 'val'])
+
+        if not train_file and raw_input_dir.exists() and raw_input_dir.is_dir():
+            candidates = [
+                f for f in raw_input_dir.iterdir()
+                if f.is_file() and f.suffix.lower() in ['.csv', '.tsv'] and f != test_file
+            ]
+            non_test = [f for f in candidates if not any(k in f.stem.lower() for k in ('test', 'val', 'validation'))]
+            if non_test:
+                train_file = non_test[0]
+            elif candidates:
+                train_file = candidates[0]
         
         if not train_file:
             raise ValueError(f"No valid tabular training data found in {raw_input_dir}")
@@ -58,8 +84,15 @@ class TabularAdapter(MLLibraryAdapter):
     def build_code_context(self, perceptual_context: PerceptualContext, prepared_data: dict[str, Any]) -> str:
         ctx = "Library Context (autogluon.tabular):\n"
         ctx += "- Use `from autogluon.tabular import TabularPredictor`.\n"
-        ctx += "- Clean invalid/malformed numeric values before fitting if mentioned in perceptual context.\n"
+        ctx += "- Clean invalid/malformed numeric values and impute missing values (mean/median for numeric, mode for categorical) before fitting.\n"
+        ctx += "- CRITICAL: Avoid pandas chained assignment warnings; use `df[col] = df[col].fillna(val)` instead of `inplace=True`.\n"
         ctx += "- Make sure to specify the exact label correctly.\n"
+        ctx += "- CRITICAL: Set save path in `TabularPredictor(label=label, path='out/models')`. Do NOT call `predictor.save('out/models')`!\n"
+        ctx += "- CRITICAL: If specifying 'eval_metric', pass it ONLY to TabularPredictor constructor: `TabularPredictor(label=label, eval_metric=..., path='out/models')`. NEVER pass 'eval_metric' to `predictor.fit(...)` as it will raise ValueError!\n"
+        ctx += "- Fit with: `predictor.fit(train_data, presets='medium_quality', time_limit=60)`\n"
+        ctx += "- CRITICAL: Always use forward slashes (/) for all file paths (e.g. 'out/models', 'out/predictions.csv'). Never use Windows backslashes.\n"
+        ctx += "- Always output predictions to `out/predictions.csv`.\n"
+        ctx += "- Always save comprehensive evaluation metrics to `out/summary.json` (e.g. for classification include `accuracy`, `balanced_accuracy`, `f1`, `precision`, `recall`, `mcc`; for regression include `rmse`, `mae`, `r2`, `mse`).\n"
         return ctx
 
     def expected_outputs(self) -> list[str]:
@@ -67,6 +100,7 @@ class TabularAdapter(MLLibraryAdapter):
 
     def validate_result(self, workspace_dir: Path) -> dict[str, Any]:
         metrics = None
+        raw_metrics = None
         summary_file = workspace_dir / "summary.json"
         
         if summary_file.exists():
@@ -74,12 +108,16 @@ class TabularAdapter(MLLibraryAdapter):
             try:
                 with open(summary_file) as f:
                     summary_data = json.load(f)
+                    raw_metrics = summary_data.get("raw_metrics") or summary_data.get("metrics")
                     metrics = summary_data.get("metrics")
+                    if isinstance(metrics, dict):
+                        metrics = canonicalize_metrics(metrics)
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"Could not load summary.json: {e}")
                 
         return {
             "prediction_exists": (workspace_dir / "predictions.csv").exists(),
             "model_exists": (workspace_dir / "models").exists(),
-            "metrics": metrics
+            "metrics": metrics,
+            "raw_metrics": raw_metrics,
         }

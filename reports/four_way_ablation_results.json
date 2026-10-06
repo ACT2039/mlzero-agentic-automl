@@ -1,0 +1,207 @@
+{
+  "experiment_id": "ab4_20261005_173203",
+  "benchmark_cases": 1,
+  "repetitions": 1,
+  "total_runs_per_configuration": 1,
+  "llm_mode": "mock",
+  "max_iterations": 3,
+  "retrieval_k": 5,
+  "timestamp": "2026-10-05T17:32:03.076999+00:00",
+  "academic_integrity_statement": "The following results were obtained from the independent paper-aligned implementation using the project's local controlled benchmark suite.",
+  "configurations": {
+    "LLM_ONLY": {
+      "tsr": {
+        "value": 100.0,
+        "successful_runs": 1,
+        "total_runs": 1
+      },
+      "fasr": {
+        "value": 0.0,
+        "first_attempt_successful_runs": 0,
+        "total_runs": 1
+      },
+      "avg_iterations": 0,
+      "std_iterations": 0.0,
+      "error_recovery_rate": {
+        "value": 100.0,
+        "recovered_runs": 1,
+        "initially_failed_runs": 1
+      },
+      "mean_execution_time_seconds": 0.01,
+      "std_execution_time_seconds": 0.0,
+      "total_runs": 1,
+      "name": "LLM Only",
+      "semantic_memory": false,
+      "episodic_memory": false
+    },
+    "LLM_SEMANTIC": {
+      "tsr": {
+        "value": 100.0,
+        "successful_runs": 1,
+        "total_runs": 1
+      },
+      "fasr": {
+        "value": 0.0,
+        "first_attempt_successful_runs": 0,
+        "total_runs": 1
+      },
+      "avg_iterations": 0,
+      "std_iterations": 0.0,
+      "error_recovery_rate": {
+        "value": 100.0,
+        "recovered_runs": 1,
+        "initially_failed_runs": 1
+      },
+      "mean_execution_time_seconds": 0.0,
+      "std_execution_time_seconds": 0.0,
+      "total_runs": 1,
+      "name": "LLM + Semantic Memory",
+      "semantic_memory": true,
+      "episodic_memory": false
+    },
+    "LLM_EPISODIC": {
+      "tsr": {
+        "value": 100.0,
+        "successful_runs": 1,
+        "total_runs": 1
+      },
+      "fasr": {
+        "value": 0.0,
+        "first_attempt_successful_runs": 0,
+        "total_runs": 1
+      },
+      "avg_iterations": 0,
+      "std_iterations": 0.0,
+      "error_recovery_rate": {
+        "value": 100.0,
+        "recovered_runs": 1,
+        "initially_failed_runs": 1
+      },
+      "mean_execution_time_seconds": 0.0,
+      "std_execution_time_seconds": 0.0,
+      "total_runs": 1,
+      "name": "LLM + Episodic Memory",
+      "semantic_memory": false,
+      "episodic_memory": true
+    },
+    "FULL_SYSTEM": {
+      "tsr": {
+        "value": 100.0,
+        "successful_runs": 1,
+        "total_runs": 1
+      },
+      "fasr": {
+        "value": 0.0,
+        "first_attempt_successful_runs": 0,
+        "total_runs": 1
+      },
+      "avg_iterations": 0,
+      "std_iterations": 0.0,
+      "error_recovery_rate": {
+        "value": 100.0,
+        "recovered_runs": 1,
+        "initially_failed_runs": 1
+      },
+      "mean_execution_time_seconds": 0.0,
+      "std_execution_time_seconds": 0.0,
+      "total_runs": 1,
+      "name": "Full System",
+      "semantic_memory": true,
+      "episodic_memory": true
+    }
+  },
+  "raw_runs": [
+    {
+      "experiment_id": "ab4_llm_only_case_10_mixed_directory_r1",
+      "configuration": "LLM_ONLY",
+      "configuration_name": "LLM Only",
+      "case_id": "case_10_mixed_directory",
+      "case_name": "Mixed Directory Perception Case",
+      "run_index": 1,
+      "llm_mode": "mock",
+      "semantic_memory_enabled": false,
+      "episodic_memory_enabled": false,
+      "success": true,
+      "first_attempt_success": false,
+      "iterations": 0,
+      "initially_failed": true,
+      "recovered": true,
+      "execution_time_seconds": 0.005,
+      "final_decision": "SUCCESS",
+      "error_category": null,
+      "selected_library": "autogluon.tabular",
+      "perceived_task_type": "classification",
+      "perceived_target": "name",
+      "timestamp": "2026-10-05T17:32:03.081999+00:00"
+    },
+    {
+      "experiment_id": "ab4_llm_semantic_case_10_mixed_directory_r1",
+      "configuration": "LLM_SEMANTIC",
+      "configuration_name": "LLM + Semantic Memory",
+      "case_id": "case_10_mixed_directory",
+      "case_name": "Mixed Directory Perception Case",
+      "run_index": 1,
+      "llm_mode": "mock",
+      "semantic_memory_enabled": true,
+      "episodic_memory_enabled": false,
+      "success": true,
+      "first_attempt_success": false,
+      "iterations": 0,
+      "initially_failed": true,
+      "recovered": true,
+      "execution_time_seconds": 0.004,
+      "final_decision": "SUCCESS",
+      "error_category": null,
+      "selected_library": "autogluon.tabular",
+      "perceived_task_type": "classification",
+      "perceived_target": "name",
+      "timestamp": "2026-10-05T17:32:03.085999+00:00"
+    },
+    {
+      "experiment_id": "ab4_llm_episodic_case_10_mixed_directory_r1",
+      "configuration": "LLM_EPISODIC",
+      "configuration_name": "LLM + Episodic Memory",
+      "case_id": "case_10_mixed_directory",
+      "case_name": "Mixed Directory Perception Case",
+      "run_index": 1,
+      "llm_mode": "mock",
+      "semantic_memory_enabled": false,
+      "episodic_memory_enabled": true,
+      "success": true,
+      "first_attempt_success": false,
+      "iterations": 0,
+      "initially_failed": true,
+      "recovered": true,
+      "execution_time_seconds": 0.003,
+      "final_decision": "SUCCESS",
+      "error_category": null,
+      "selected_library": "autogluon.tabular",
+      "perceived_task_type": "classification",
+      "perceived_target": "name",
+      "timestamp": "2026-10-05T17:32:03.088999+00:00"
+    },
+    {
+      "experiment_id": "ab4_full_system_case_10_mixed_directory_r1",
+      "configuration": "FULL_SYSTEM",
+      "configuration_name": "Full System",
+      "case_id": "case_10_mixed_directory",
+      "case_name": "Mixed Directory Perception Case",
+      "run_index": 1,
+      "llm_mode": "mock",
+      "semantic_memory_enabled": true,
+      "episodic_memory_enabled": true,
+      "success": true,
+      "first_attempt_success": false,
+      "iterations": 0,
+      "initially_failed": true,
+      "recovered": true,
+      "execution_time_seconds": 0.003,
+      "final_decision": "SUCCESS",
+      "error_category": null,
+      "selected_library": "autogluon.tabular",
+      "perceived_task_type": "classification",
+      "perceived_target": "name",
+      "timestamp": "2026-10-05T17:32:03.091995+00:00"
+    }
+  ]
+}

@@ -1,3 +1,11 @@
 Case ID,Name,Task Type,Expected Library,Evaluation Scope,Selected Library Acc,Success Rate,Avg Iterations,Mean Time (s),Key Metric
-case_01_tiny_cls,Tiny Tabular Classification,classification,autogluon.tabular,end_to_end,100.0%,100.0%,2.0,5.54,N/A
-case_03_house_price_faulty,House Price Faulty Data Quality,regression,autogluon.tabular,end_to_end,100.0%,100.0%,2.0,5.4,N/A
+case_01_tiny_cls,Tiny Tabular Classification,classification,autogluon.tabular,end_to_end,100.0%,100.0%,2.0,6.41,accuracy=0.75
+case_02_tiny_reg,Tiny Tabular Regression,regression,autogluon.tabular,end_to_end,100.0%,100.0%,2.0,5.42,mae=1.1828
+case_03_house_price_faulty,House Price Faulty Data Quality,regression,autogluon.tabular,end_to_end,100.0%,100.0%,2.0,6.3,mae=30503.6672
+case_04_tiny_timeseries,Tiny Multi-Series Time-Series Forecasting,time_series_forecasting,autogluon.timeseries,end_to_end,100.0%,100.0%,1.0,0.66,mae=0.1
+case_05_tiny_image_cls,Tiny Image Classification,multimodal,autogluon.multimodal,end_to_end,100.0%,100.0%,1.0,0.61,accuracy=0.95
+case_06_tiny_text_cls,Tiny Text Classification,classification,autogluon.tabular,end_to_end,100.0%,100.0%,2.0,6.45,accuracy=0.6667
+case_07_tiny_multimodal,Tiny Multimodal Text & Tabular,classification,autogluon.tabular,end_to_end,0.0%,100.0%,1.0,0.61,accuracy=0.95
+case_08_tiny_retrieval,Tiny Dense Retrieval Corpus,retrieval,FlagEmbedding,end_to_end,100.0%,100.0%,1.0,0.14,recall_at_k=0.92
+case_09_readme_described,README Described Task,classification,autogluon.tabular,end_to_end,100.0%,100.0%,2.0,6.44,accuracy=1.0
+case_10_mixed_directory,Mixed Directory Perception Case,classification,autogluon.tabular,perception_only,100.0%,100.0%,0.0,0.0,N/A

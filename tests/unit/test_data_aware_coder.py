@@ -139,9 +139,9 @@ def test_coder_includes_data_quality_in_prompt():
     recorded_prompts = []
 
     class CapturingMockLLM(MockLLMClient):
-        def generate_structured(self, prompt, schema):
+        def generate_structured(self, prompt, schema, max_tokens=None):
             recorded_prompts.append(prompt)
-            return super().generate_structured(prompt, schema)
+            return super().generate_structured(prompt, schema, max_tokens=max_tokens)
 
     client = CapturingMockLLM()
     coder = CoderAgent(llm_client=client)

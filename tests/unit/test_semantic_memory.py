@@ -212,7 +212,7 @@ def test_coder_prompt_four_sections():
 
     captured_prompts = []
 
-    def fake_generate(prompt, schema):
+    def fake_generate(prompt, schema, **kwargs):
         captured_prompts.append(prompt)
         return CodeArtifact(code="print('SUCCESS')")
 

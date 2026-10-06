@@ -1,0 +1,1063 @@
+{
+  "$defs": {
+    "AudioMetadataSummary": {
+      "properties": {
+        "sample_rate": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Audio sample rate in Hz.",
+          "title": "Sample Rate"
+        },
+        "channels": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of audio channels.",
+          "title": "Channels"
+        },
+        "duration_sec": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Duration in seconds if lightweight inspection available.",
+          "title": "Duration Sec"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Audio format (WAV, MP3, etc.).",
+          "title": "Format"
+        }
+      },
+      "title": "AudioMetadataSummary",
+      "type": "object"
+    },
+    "DataQualityReport": {
+      "description": "Deterministic data quality summary from profiling a tabular dataset.",
+      "properties": {
+        "target_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inferred target column name.",
+          "title": "Target Column"
+        },
+        "timestamp_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inferred timestamp/date column name.",
+          "title": "Timestamp Column"
+        },
+        "id_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inferred item/entity ID column name.",
+          "title": "Id Column"
+        },
+        "task_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inferred task type from data evidence.",
+          "title": "Task Type"
+        },
+        "row_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of rows in training file.",
+          "title": "Row Count"
+        },
+        "column_names": {
+          "description": "Column names from training file.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Column Names",
+          "type": "array"
+        },
+        "missing_values": {
+          "description": "Columns with missing values.",
+          "items": {
+            "$ref": "#/$defs/MissingValueInfo"
+          },
+          "title": "Missing Values",
+          "type": "array"
+        },
+        "invalid_numeric_values": {
+          "description": "Non-numeric values found in otherwise numeric columns.",
+          "items": {
+            "$ref": "#/$defs/InvalidNumericInfo"
+          },
+          "title": "Invalid Numeric Values",
+          "type": "array"
+        },
+        "malformed_target_values": {
+          "description": "Non-parseable values in the target column.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Malformed Target Values",
+          "type": "array"
+        },
+        "train_test_schema_mismatches": {
+          "description": "Schema differences between train and test CSVs.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Train Test Schema Mismatches",
+          "type": "array"
+        },
+        "constant_columns": {
+          "description": "Columns with only one unique value.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Constant Columns",
+          "type": "array"
+        },
+        "duplicate_columns": {
+          "description": "Suspected duplicate column names.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Duplicate Columns",
+          "type": "array"
+        },
+        "candidate_targets": {
+          "description": "Candidate target columns identified by heuristics.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Targets",
+          "type": "array"
+        }
+      },
+      "title": "DataQualityReport",
+      "type": "object"
+    },
+    "FileContext": {
+      "properties": {
+        "metadata": {
+          "$ref": "#/$defs/FileMetadata"
+        },
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column names if tabular.",
+          "title": "Columns"
+        },
+        "row_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Total rows if practically determinable.",
+          "title": "Row Count"
+        },
+        "sample_rows": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A small sample of data rows.",
+          "title": "Sample Rows"
+        },
+        "inferred_types": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inferred basic data types for columns.",
+          "title": "Inferred Types"
+        },
+        "extracted_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text extracted from document files.",
+          "title": "Extracted Text"
+        },
+        "text_summary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text structural summary."
+        },
+        "json_summary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/JSONStructureSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "JSON structural summary."
+        },
+        "image_summary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImageMetadataSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image metadata summary."
+        },
+        "audio_summary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AudioMetadataSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Audio metadata summary."
+        },
+        "warnings": {
+          "description": "Non-fatal warnings recorded during file inspection.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Error encountered during inspection.",
+          "title": "Error"
+        }
+      },
+      "required": [
+        "metadata"
+      ],
+      "title": "FileContext",
+      "type": "object"
+    },
+    "FileGroup": {
+      "properties": {
+        "group_id": {
+          "description": "Unique identifier for the file group.",
+          "title": "Group Id",
+          "type": "string"
+        },
+        "files": {
+          "description": "Relative paths of files in this group.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "modality": {
+          "description": "Primary modality (tabular, image, text, audio, json, mixed, etc.).",
+          "title": "Modality",
+          "type": "string"
+        },
+        "relationship": {
+          "description": "Relationship (e.g. train_test_pair, image_label_mapping, document_labels, query_corpus, multi_table, etc.).",
+          "title": "Relationship",
+          "type": "string"
+        },
+        "purpose": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inferred purpose of this file group.",
+          "title": "Purpose"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Confidence score.",
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "group_id",
+        "modality",
+        "relationship"
+      ],
+      "title": "FileGroup",
+      "type": "object"
+    },
+    "FileMetadata": {
+      "properties": {
+        "path": {
+          "description": "Relative path from dataset root.",
+          "title": "Path",
+          "type": "string"
+        },
+        "absolute_path": {
+          "description": "Absolute path on disk.",
+          "title": "Absolute Path",
+          "type": "string"
+        },
+        "extension": {
+          "description": "File extension in lowercase.",
+          "title": "Extension",
+          "type": "string"
+        },
+        "size_bytes": {
+          "description": "File size in bytes.",
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "file_type": {
+          "description": "Determined type (e.g., 'csv', 'document', 'binary').",
+          "title": "File Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "absolute_path",
+        "extension",
+        "size_bytes",
+        "file_type"
+      ],
+      "title": "FileMetadata",
+      "type": "object"
+    },
+    "ImageMetadataSummary": {
+      "properties": {
+        "width": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image width in pixels.",
+          "title": "Width"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image height in pixels.",
+          "title": "Height"
+        },
+        "channels": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of channels (e.g., 1 for grayscale, 3 for RGB, 4 for RGBA).",
+          "title": "Channels"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image color mode (RGB, L, RGBA, etc.).",
+          "title": "Mode"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Detected image format (PNG, JPEG, etc.).",
+          "title": "Format"
+        }
+      },
+      "title": "ImageMetadataSummary",
+      "type": "object"
+    },
+    "InvalidNumericInfo": {
+      "properties": {
+        "column": {
+          "title": "Column",
+          "type": "string"
+        },
+        "invalid_values": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Invalid Values",
+          "type": "array"
+        },
+        "invalid_count": {
+          "title": "Invalid Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "column",
+        "invalid_values",
+        "invalid_count"
+      ],
+      "title": "InvalidNumericInfo",
+      "type": "object"
+    },
+    "JSONStructureSummary": {
+      "properties": {
+        "keys": {
+          "description": "Top-level object keys if dict.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Keys",
+          "type": "array"
+        },
+        "is_list": {
+          "default": false,
+          "description": "True if top-level structure is a list.",
+          "title": "Is List",
+          "type": "boolean"
+        },
+        "nesting_depth": {
+          "default": 1,
+          "description": "Approximate nesting depth.",
+          "title": "Nesting Depth",
+          "type": "integer"
+        },
+        "item_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of items if top-level list.",
+          "title": "Item Count"
+        },
+        "sample_item": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bounded sample item.",
+          "title": "Sample Item"
+        }
+      },
+      "title": "JSONStructureSummary",
+      "type": "object"
+    },
+    "LibrarySelection": {
+      "properties": {
+        "selected_library": {
+          "description": "The name of the selected library.",
+          "title": "Selected Library",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Confidence in the selection.",
+          "title": "Confidence"
+        },
+        "explanation": {
+          "default": "Selected library",
+          "description": "Explanation of why this library was chosen.",
+          "title": "Explanation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "selected_library"
+      ],
+      "title": "LibrarySelection",
+      "type": "object"
+    },
+    "MissingValueInfo": {
+      "properties": {
+        "column": {
+          "title": "Column",
+          "type": "string"
+        },
+        "missing_count": {
+          "title": "Missing Count",
+          "type": "integer"
+        },
+        "missing_pct": {
+          "title": "Missing Pct",
+          "type": "number"
+        }
+      },
+      "required": [
+        "column",
+        "missing_count",
+        "missing_pct"
+      ],
+      "title": "MissingValueInfo",
+      "type": "object"
+    },
+    "TaskContext": {
+      "properties": {
+        "objective": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Main objective of the user instruction.",
+          "title": "Objective"
+        },
+        "task_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Type of ML task (e.g., 'classification', 'regression', 'time_series_forecasting', 'retrieval').",
+          "title": "Task Type"
+        },
+        "target_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicitly identified target label column.",
+          "title": "Target Column"
+        },
+        "timestamp_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timestamp/date column for time-series forecasting.",
+          "title": "Timestamp Column"
+        },
+        "id_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Item/entity ID column for time-series forecasting.",
+          "title": "Id Column"
+        },
+        "input_data_files": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "List of primary input file paths.",
+          "title": "Input Data Files"
+        },
+        "output_requirements": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Requirements for the output.",
+          "title": "Output Requirements"
+        },
+        "evaluation_metric": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Evaluation metric if explicitly stated.",
+          "title": "Evaluation Metric"
+        },
+        "constraints": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Any explicit constraints.",
+          "title": "Constraints"
+        },
+        "relevant_description_files": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Files containing relevant descriptions.",
+          "title": "Relevant Description Files"
+        },
+        "explanation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explanation for context extraction.",
+          "title": "Explanation"
+        },
+        "data_quality": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataQualityReport"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Deterministic data quality profiling results."
+        }
+      },
+      "title": "TaskContext",
+      "type": "object"
+    },
+    "TextSummary": {
+      "properties": {
+        "line_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Total line count if practically determinable.",
+          "title": "Line Count"
+        },
+        "encoding": {
+          "default": "utf-8",
+          "description": "Detected text encoding.",
+          "title": "Encoding",
+          "type": "string"
+        },
+        "first_lines": {
+          "description": "Bounded initial lines of text.",
+          "items": {
+            "type": "string"
+          },
+          "title": "First Lines",
+          "type": "array"
+        }
+      },
+      "title": "TextSummary",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "files": {
+      "description": "Context for each inspected file.",
+      "items": {
+        "$ref": "#/$defs/FileContext"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "file_groups": {
+      "description": "Structured file groupings.",
+      "items": {
+        "$ref": "#/$defs/FileGroup"
+      },
+      "title": "File Groups",
+      "type": "array"
+    },
+    "modalities": {
+      "description": "List of detected data modalities.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Modalities",
+      "type": "array"
+    },
+    "train_files": {
+      "description": "Files identified as training data.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Train Files",
+      "type": "array"
+    },
+    "test_files": {
+      "description": "Files identified as test/validation data.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Test Files",
+      "type": "array"
+    },
+    "label_files": {
+      "description": "Files identified as label/annotation files.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Label Files",
+      "type": "array"
+    },
+    "metadata_files": {
+      "description": "Files identified as metadata/description files.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Metadata Files",
+      "type": "array"
+    },
+    "task": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TaskContext"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Inferred task context."
+    },
+    "task_type": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Top-level inferred task type.",
+      "title": "Task Type"
+    },
+    "target_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Selected target column name.",
+      "title": "Target Column"
+    },
+    "timestamp_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Timestamp column for time-series forecasting.",
+      "title": "Timestamp Column"
+    },
+    "id_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Item/entity ID column for time-series forecasting.",
+      "title": "Id Column"
+    },
+    "candidate_targets": {
+      "description": "Candidate target column names.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Candidate Targets",
+      "type": "array"
+    },
+    "library": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LibrarySelection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Selected library object."
+    },
+    "selected_library": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Selected ML library identifier.",
+      "title": "Selected Library"
+    },
+    "library_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Reason for library selection.",
+      "title": "Library Reason"
+    },
+    "data_quality": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DataQualityReport"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Deterministic data quality profiling results."
+    },
+    "quality_issues": {
+      "description": "Summary of data quality findings/issues.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Quality Issues",
+      "type": "array"
+    },
+    "warnings": {
+      "description": "Non-fatal perception warnings.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 1.0,
+      "description": "Overall perception confidence score.",
+      "title": "Confidence",
+      "type": "number"
+    },
+    "errors": {
+      "description": "Any top-level perception errors.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Errors",
+      "type": "array"
+    }
+  },
+  "title": "PerceptualContext",
+  "type": "object"
+}

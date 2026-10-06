@@ -141,7 +141,7 @@ def test_coder_receives_retrieved_knowledge():
     
     # We patch the llm_client to intercept the prompt
     prompts = []
-    def fake_gen(prompt, schema):
+    def fake_gen(prompt, schema, **kwargs):
         prompts.append(prompt)
         from mlzero.schemas.coder import CodeArtifact
         return CodeArtifact(code="pass")

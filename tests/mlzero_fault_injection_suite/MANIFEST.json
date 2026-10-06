@@ -1,0 +1,83 @@
+{
+  "purpose": "Deep fault-injection and recovery tests for an MLZero-style autonomous ML pipeline.",
+  "datasets": [
+    {
+      "name": "01_classification_malformed",
+      "task": "classification",
+      "primary_faults": [
+        "non-numeric token",
+        "missing numeric",
+        "missing category"
+      ],
+      "expected": "recover and predict"
+    },
+    {
+      "name": "02_regression_target_fault",
+      "task": "regression",
+      "primary_faults": [
+        "mixed numeric text",
+        "unseen category"
+      ],
+      "expected": "recover and predict"
+    },
+    {
+      "name": "03_timeseries_irregular",
+      "task": "time-series",
+      "primary_faults": [
+        "out-of-order timestamps",
+        "missing timestamp",
+        "missing value",
+        "gap"
+      ],
+      "expected": "repair/report and forecast"
+    },
+    {
+      "name": "04_wrong_target",
+      "task": "classification",
+      "primary_faults": [
+        "requested target absent"
+      ],
+      "expected": "safe clarification/fail"
+    },
+    {
+      "name": "05_missing_file",
+      "task": "classification",
+      "primary_faults": [
+        "missing test.csv"
+      ],
+      "expected": "safe fail"
+    },
+    {
+      "name": "06_malformed_csv",
+      "task": "classification",
+      "primary_faults": [
+        "CSV parse error"
+      ],
+      "expected": "safe fail"
+    },
+    {
+      "name": "07_multimodal_image_metadata",
+      "task": "multimodal",
+      "primary_faults": [
+        "missing paired image"
+      ],
+      "expected": "detect pair fault"
+    },
+    {
+      "name": "08_retrieval_conflict",
+      "task": "retrieval",
+      "primary_faults": [
+        "contradictory/outdated documentation"
+      ],
+      "expected": "relevant repair doc ranked high"
+    },
+    {
+      "name": "09_schema_mismatch",
+      "task": "classification",
+      "primary_faults": [
+        "train/test feature mismatch"
+      ],
+      "expected": "safe schema diagnosis"
+    }
+  ]
+}

@@ -33,6 +33,7 @@ class IterativeCodingOrchestrator:
         episodic_memory: "EpisodicMemory | None" = None,
         judge: ExecutionJudgeAgent | None = None,
         disable_judge: bool = False,
+        disable_episodic: bool = False,
         retrieval_k: int = 5,
     ):
         self.coder = coder
@@ -40,7 +41,8 @@ class IterativeCodingOrchestrator:
         self.error_analyzer = error_analyzer
         self.max_iterations = max_iterations or settings.limits.max_iterations
         self.semantic_memory = semantic_memory
-        self.episodic_memory = episodic_memory
+        self.disable_episodic = disable_episodic
+        self.episodic_memory = None if disable_episodic else episodic_memory
         self.judge = judge or ExecutionJudgeAgent(llm_client=getattr(coder, "llm_client", None))
         self.disable_judge = disable_judge
         self.retrieval_k = retrieval_k
@@ -117,11 +119,18 @@ class IterativeCodingOrchestrator:
             iteration_start = time.time()
             
             # 1. Generate code
-            try:
-                artifact = self.coder.process(current_request)
-            except Exception as e:  # noqa: BLE001
-                logger.error(f"Coder failed at iteration {i}: {e}")
-                # We can't continue if coder crashes
+            artifact = None
+            for coder_attempt in range(2):
+                try:
+                    artifact = self.coder.process(current_request)
+                    break
+                except Exception as e:  # noqa: BLE001
+                    if coder_attempt == 0:
+                        logger.warning(f"Coder failed at iteration {i} (attempt 1), retrying: {e}")
+                        time.sleep(1.0)
+                    else:
+                        logger.error(f"Coder failed at iteration {i}: {e}")
+            if artifact is None:
                 break
 
             final_artifact = artifact
@@ -292,15 +301,15 @@ class IterativeCodingOrchestrator:
                 current_request = CodeGenerationRequest(
                     perceptual_context_json=perceptual_context_json,
                     user_instruction=user_instruction,
-                    previous_code=artifact.code,
-                    error_context_json=error_ctx.model_dump_json(),
+                    previous_code=None if self.disable_episodic else artifact.code,
+                    error_context_json=None if self.disable_episodic else error_ctx.model_dump_json(),
                     retrieved_knowledge_json=retrieved_knowledge_json,
-                    episodic_context_json=episodic_context_json,
-                    coding_guidance=coding_guidance
+                    episodic_context_json=None if self.disable_episodic else episodic_context_json,
+                    coding_guidance=coding_guidance,
                 )
                 
         total_duration = time.time() - start_time
-        if self.episodic_memory:
+        if self.episodic_memory and not self.disable_episodic:
             self.episodic_memory.end_run(run_id, "SUCCESS" if success else "FAIL")
             
         pipeline_trace = {
@@ -310,7 +319,7 @@ class IterativeCodingOrchestrator:
             "adapter_used": adapter.__class__.__name__ if adapter else "None",
             "executor_completed": bool(final_result is not None),
             "judge_decisions": judge_decisions_list,
-            "episodic_memory_recorded": bool(self.episodic_memory is not None),
+            "episodic_memory_recorded": bool(not self.disable_episodic and self.episodic_memory is not None),
             "requested_k": self.retrieval_k,
             "actual_retrieved_k": actual_retrieved_k,
         }

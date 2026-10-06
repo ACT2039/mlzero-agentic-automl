@@ -38,6 +38,7 @@ def execute_case_run(
     disable_episodic: bool = False,
     disable_judge: bool = False,
     retrieval_k: int = 5,
+    max_iterations: int | None = None,
 ) -> EvaluationRun:
     """Execute a single evaluation run for a given EvaluationCase."""
     start_total = time.time()
@@ -107,9 +108,17 @@ def execute_case_run(
         }
     else:
         try:
+            run_options: dict[str, Any] = {
+                "disable_judge": disable_judge,
+                "disable_episodic": disable_episodic,
+                "disable_semantic": disable_semantic,
+                "retrieval_k": req_k,
+            }
+            if max_iterations is not None:
+                run_options["max_iterations"] = max_iterations
             run_status = service.run_mlzero(
                 dataset_path=str(dataset_dir),
-                options={"disable_judge": disable_judge, "retrieval_k": req_k},
+                options=run_options,
             )
             success = getattr(run_status, "success", False)
             iterations = getattr(run_status, "iterations", 1)
@@ -180,7 +189,7 @@ def run_evaluation_suite(
     selected_cases: list[str] | None = None,
     use_mock_llm: bool = True,
     output_dir: str = "reports",
-) -> EvaluationSuiteResult:
+) -> EvaluationSuiteResult | dict[str, Any] | None:
     """Run specified evaluation suite mode."""
     cases_to_run: list[EvaluationCase] = []
     if selected_cases:
@@ -251,6 +260,24 @@ def run_evaluation_suite(
         rob_eval = RobustnessEvaluator(use_mock_llm=use_mock_llm)
         robustness_dict = rob_eval.run_robustness_suite(base_case_id="case_01_tiny_cls")
 
+    if mode == "four_way_ablation":
+        from evaluation.four_way_ablation import (
+            FourWayAblationRunner,
+            print_comparison_table,
+        )
+        ab4_runner = FourWayAblationRunner(
+            use_mock_llm=use_mock_llm,
+            max_iterations=3,
+            retrieval_k=5,
+            output_dir=output_dir,
+        )
+        selected_case_objs = None
+        if selected_cases:
+            selected_case_objs = [c for c in (get_case(cn) for cn in selected_cases) if c is not None]
+        ab4_result = ab4_runner.run_experiment(cases=selected_case_objs, runs_per_case=runs_per_case)
+        print_comparison_table(ab4_result)
+        return ab4_result
+
     csv_p, json_p, md_p = generate_evaluation_reports(
         suite_result=suite_result,
         ablation_results=ablations_dict,
@@ -270,11 +297,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="MLZero Agentic AutoML Evaluation Runner")
     parser.add_argument(
         "--mode",
-        choices=["smoke", "local_formal", "ablation", "robustness", "real_llm"],
-        default="smoke",
+        choices=["smoke", "local_formal", "ablation", "robustness", "real_llm", "four_way_ablation"],
+        default="local_formal",
         help="Evaluation mode to run.",
     )
-    parser.add_argument("--runs", type=int, default=None, help="Number of runs per case (default: 3 for local_formal, 1 for smoke).")
+    parser.add_argument("--runs", type=int, default=None, help="Number of runs per case (default: 3 for local_formal/four_way_ablation, 1 for smoke).")
     parser.add_argument("--cases", type=str, default=None, help="Comma-separated case IDs or names to run.")
     parser.add_argument("--output-dir", type=str, default="reports", help="Output directory for report artifacts.")
     parser.add_argument("--llm-mode", choices=["mock", "real"], default="mock", help="LLM provider mode.")
@@ -284,7 +311,7 @@ def main() -> None:
     use_mock = (args.llm_mode == "mock")
     runs_cnt = args.runs
     if runs_cnt is None:
-        runs_cnt = 3 if args.mode == "local_formal" else 1
+        runs_cnt = 3 if args.mode in ("local_formal", "four_way_ablation") else 1
 
     selected = args.cases.split(",") if args.cases else None
 

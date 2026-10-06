@@ -246,30 +246,38 @@ def handle_demo(args: argparse.Namespace) -> int:
     return 0
 
 def handle_serve(args: argparse.Namespace) -> int:
-    """Start the FastAPI server."""
+    """Start the FastAPI server with the new HTML frontend."""
     import uvicorn
 
     from mlzero.api.app import app
     from mlzero.core.config import settings
-    
+
     host = args.host or settings.app.api_host
     port = args.port or settings.app.api_port
-    
-    print(f"Starting MLZero API server on {host}:{port}")
+
+    print("Starting MLZero — Agentic AutoML")
+    print(f"  Frontend:  http://{host}:{port}/")
+    print(f"  API docs:  http://{host}:{port}/docs")
+    print("  Press Ctrl+C to stop")
     uvicorn.run(app, host=host, port=port)
     return 0
 
 def handle_ui(args: argparse.Namespace) -> int:
     """Start the Gradio UI."""
     from mlzero.core.config import settings
-    from mlzero.ui.app import create_ui
-    
+    from mlzero.ui.app import CUSTOM_CSS, GRADIO_THEME, create_ui
+
     host = args.host or settings.app.ui_host
     port = args.port or settings.app.ui_port
-    
+
     print(f"Starting MLZero UI on {host}:{port}")
     app = create_ui()
-    app.launch(server_name=host, server_port=port)
+    app.launch(
+        server_name=host,
+        server_port=port,
+        theme=GRADIO_THEME,
+        css=CUSTOM_CSS,
+    )
     return 0
 
 def handle_run_code(args: argparse.Namespace) -> int:

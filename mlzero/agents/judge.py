@@ -54,13 +54,27 @@ class ExecutionJudgeAgent:
             f"Code:\n{artifact.code}\n\n"
         )
         if perceptual_context:
-            prompt += f"Perceptual Context:\n{perceptual_context.model_dump_json()}\n\n"
+            ttype = perceptual_context.task_type or (perceptual_context.task.task_type if perceptual_context.task else "Unknown")
+            tcol = perceptual_context.target_column or (perceptual_context.task.target_column if perceptual_context.task else "Unknown")
+            metric = getattr(perceptual_context.task if perceptual_context.task else perceptual_context, "evaluation_metric", getattr(perceptual_context, "performance_metric", "Unknown"))
+            prompt += f"Perceptual Task: {ttype}, Target: {tcol}, Metric: {metric}\n\n"
         if selected_library:
             prompt += f"Selected ML Library: {selected_library}\n\n"
         if retrieved_knowledge and hasattr(retrieved_knowledge, "sources"):
             prompt += f"Retrieved Knowledge Sources: {retrieved_knowledge.sources}\n\n"
 
         prompt += (
+            "\nEVALUATION GUIDELINES:\n"
+            "1. DECIDE 'FINISH' IF:\n"
+            "   - Exit Code is 0 (or null) and Success Flag is True.\n"
+            "   - Model finished training and evaluation results / metrics were generated.\n"
+            "   - Prediction output files (e.g. predictions.csv or out/predictions.csv) and summary/metrics are produced in Output Files.\n"
+            "   - NOTE: Harmless warnings (e.g. optional packages skipped, or small dataset warnings) do NOT constitute a failure.\n"
+            "   - NOTE: Output files may appear with or without the 'out/' prefix in the output files list; both are completely valid.\n\n"
+            "2. DECIDE 'FIX' ONLY IF:\n"
+            "   - Execution failed with a non-zero exit code (syntax error, uncaught exception, crash).\n"
+            "   - Process exceeded wall-clock limits or crashed.\n"
+            "   - Prediction output files were not generated.\n\n"
             "Determine whether this execution is complete and successful ('FINISH') "
             "or requires correction / another iteration ('FIX'). "
             "Provide the decision, reason, confidence, and issue_summary if FIX."
@@ -104,6 +118,17 @@ class ExecutionJudgeAgent:
                 issue_summary=f"Missing expected output files: {missing_str}",
             )
 
+        # Fast path 3: Completed execution with required prediction and metric artifacts
+        has_predictions = any("prediction" in f.lower() for f in result.output_files)
+        has_summary = any("summary" in f.lower() or "metric" in f.lower() for f in result.output_files)
+        if result.success and (result.return_code == 0 or result.return_code is None) and not result.missing_expected_files and has_predictions and has_summary:
+            logger.info(f"ExecutionJudgeAgent: Iteration {iteration} cleanly produced predictions and summary with exit code 0 -> FINISH")
+            return ExecutionDecision(
+                decision="FINISH",
+                reason="Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics.",
+                confidence=1.0,
+            )
+
         # If no LLM client configured, use deterministic heuristic
         if self.llm_client is None:
             if result.success and (result.return_code == 0 or result.return_code is None):
@@ -130,7 +155,7 @@ class ExecutionJudgeAgent:
         )
 
         try:
-            decision = self.llm_client.generate_structured(prompt, ExecutionDecision)
+            decision = self.llm_client.generate_structured(prompt, ExecutionDecision, max_tokens=800)
             logger.info(f"ExecutionJudgeAgent decided: {decision.decision} (reason: {decision.reason})")
             return decision
         except Exception as e:  # noqa: BLE001

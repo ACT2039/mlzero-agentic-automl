@@ -685,6 +685,13 @@ class TaskPerceptionAgent:
         if user_instruction:
             prompt += f"Instruction: {user_instruction}\n"
         prompt += f"Files available: {len(file_contexts)}\n"
+        data_file_list = [
+            f"{fc.metadata.path} ({fc.metadata.file_type}): {fc.metadata.absolute_path}"
+            for fc in file_contexts
+            if not fc.error
+        ]
+        if data_file_list:
+            prompt += "Discovered Files:\n" + "\n".join(f"- {f}" for f in data_file_list) + "\n"
         if file_groups:
             prompt += f"File Groups: {[g.relationship for g in file_groups]}\n"
         if readme_content:
@@ -697,7 +704,7 @@ class TaskPerceptionAgent:
             if data_quality.id_column:
                 prompt += f"Profiled id_column: {data_quality.id_column}\n"
 
-        llm_result: TaskContext = self.llm_client.generate_structured(prompt, TaskContext)
+        llm_result: TaskContext = self.llm_client.generate_structured(prompt, TaskContext, max_tokens=1500)
 
         # Check for structural retrieval signals
         is_retrieval = False
@@ -754,13 +761,15 @@ class TaskPerceptionAgent:
         if readme_path and not llm_result.relevant_description_files:
             llm_result = llm_result.model_copy(update={"relevant_description_files": [str(readme_path)]})
 
-        if not llm_result.input_data_files:
-            data_files = [
-                fc.metadata.absolute_path
-                for fc in file_contexts
-                if fc.metadata.file_type in ("tabular", "image", "json", "audio") and not fc.error
-            ]
-            llm_result = llm_result.model_copy(update={"input_data_files": data_files or None})
+        # Always override input_data_files with actual discovered paths —
+        # LLMs (mock or real) cannot know the real filesystem layout.
+        data_files = [
+            fc.metadata.absolute_path
+            for fc in file_contexts
+            if fc.metadata.file_type in ("tabular", "image", "json", "audio") and not fc.error
+        ]
+        if data_files:
+            llm_result = llm_result.model_copy(update={"input_data_files": data_files})
 
         return llm_result
 
@@ -848,4 +857,4 @@ class LibrarySelectorAgent:
         if perceptual_context and perceptual_context.modalities:
             prompt += f"Data Modalities: {perceptual_context.modalities}\n"
 
-        return self.llm_client.generate_structured(prompt, LibrarySelection)
+        return self.llm_client.generate_structured(prompt, LibrarySelection, max_tokens=1500)

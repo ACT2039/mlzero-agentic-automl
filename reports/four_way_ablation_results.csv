@@ -1,0 +1,5 @@
+Configuration,Semantic Memory,Episodic Memory,TSR (%),Successful Runs,Total Runs,FASR (%),First Attempt Successful Runs,Avg Iterations,Std Iterations,Error Recovery Rate (%),Recovered Runs,Initially Failed Runs,Mean Execution Time (s),Std Execution Time (s)
+LLM Only,OFF,OFF,100.00,1,1,0.00,0,0.00,0.00,100.00,1,1,0.01,0.00
+LLM + Semantic Memory,ON,OFF,100.00,1,1,0.00,0,0.00,0.00,100.00,1,1,0.00,0.00
+LLM + Episodic Memory,OFF,ON,100.00,1,1,0.00,0,0.00,0.00,100.00,1,1,0.00,0.00
+Full System,ON,ON,100.00,1,1,0.00,0,0.00,0.00,100.00,1,1,0.00,0.00

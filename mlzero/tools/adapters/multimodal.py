@@ -5,6 +5,7 @@ from typing import Any
 from mlzero.core.logger import setup_logger
 from mlzero.schemas.perception import PerceptualContext
 from mlzero.tools.adapters.base import MLLibraryAdapter
+from mlzero.utils.metrics import canonicalize_metrics
 
 logger = setup_logger(__name__)
 
@@ -40,6 +41,7 @@ class MultiModalAdapter(MLLibraryAdapter):
 
     def validate_result(self, workspace_dir: Path) -> dict[str, Any]:
         metrics = None
+        raw_metrics = None
         summary_file = workspace_dir / "summary.json"
         
         if summary_file.exists():
@@ -47,12 +49,16 @@ class MultiModalAdapter(MLLibraryAdapter):
             try:
                 with open(summary_file) as f:
                     summary_data = json.load(f)
+                    raw_metrics = summary_data.get("raw_metrics") or summary_data.get("metrics")
                     metrics = summary_data.get("metrics")
+                    if isinstance(metrics, dict):
+                        metrics = canonicalize_metrics(metrics)
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"Could not load summary.json: {e}")
                 
         return {
             "prediction_exists": (workspace_dir / "predictions.csv").exists(),
             "model_exists": (workspace_dir / "models").exists(),
-            "metrics": metrics
+            "metrics": metrics,
+            "raw_metrics": raw_metrics,
         }

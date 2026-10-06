@@ -1,6 +1,6 @@
 [
   {
-    "evaluation_id": "eval_97bbb096",
+    "evaluation_id": "eval_8f12356d",
     "case_id": "case_01_tiny_cls",
     "run_index": 1,
     "llm_mode": "mock",
@@ -18,8 +18,8 @@
     "perception_time": 0.002,
     "retrieval_time": 0.0,
     "coding_time": 0.0,
-    "execution_time": 5.532,
-    "total_time": 5.535,
+    "execution_time": 6.402,
+    "total_time": 6.405,
     "judge_decisions": [
       {
         "iteration": 1,
@@ -29,31 +29,34 @@
       {
         "iteration": 2,
         "decision": "FINISH",
-        "reason": "Execution completed successfully with expected outputs."
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
       }
     ],
     "error_recovery_count": 1,
     "final_status": "SUCCESS",
-    "output_artifacts": [],
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
     "model_artifacts": [],
     "prediction_artifacts": [],
     "metrics": {
       "success": 1.0,
       "iterations": 2,
-      "execution_time": 3.955690860748291,
+      "execution_time": 4.326823711395264,
       "error_category": null,
-      "accuracy": null,
-      "f1": null,
-      "balanced_accuracy": null,
-      "mcc": null,
+      "accuracy": 0.75,
+      "f1": 0.7333333333333334,
+      "balanced_accuracy": 0.75,
+      "mcc": 0.5773502691896258,
       "mae": null,
       "rmse": null,
       "r2": null,
-      "recall_at_k": null,
-      "precision_at_k": null,
+      "recall_at_k": 0.75,
+      "precision_at_k": 0.8333333333333333,
       "mrr": null,
-      "ml_accuracy": null,
-      "ml_f1": null,
+      "ml_accuracy": 0.75,
+      "ml_f1": 0.7333333333333334,
       "ml_mae": null,
       "ml_rmse": null
     },
@@ -77,7 +80,7 @@
         {
           "iteration": 2,
           "decision": "FINISH",
-          "reason": "Execution completed successfully with expected outputs."
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
         }
       ],
       "episodic_memory_recorded": true,
@@ -95,7 +98,105 @@
     "actual_retrieved_k": 5
   },
   {
-    "evaluation_id": "eval_64d12f28",
+    "evaluation_id": "eval_1e59ce29",
+    "case_id": "case_02_tiny_reg",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "end_to_end",
+    "selected_library": "autogluon.tabular",
+    "perceived_task_type": "regression",
+    "perceived_target": "target",
+    "perceived_timestamp_column": null,
+    "perceived_id_column": null,
+    "task_type_correct": true,
+    "library_correct": true,
+    "target_correct": true,
+    "success": true,
+    "iterations": 2,
+    "perception_time": 0.002,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 5.415,
+    "total_time": 5.418,
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+      }
+    ],
+    "error_recovery_count": 1,
+    "final_status": "SUCCESS",
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 3.4503557682037354,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": 1.1828355789184568,
+      "rmse": 1.762304701821714,
+      "r2": 0.6478777934169024,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": 1.1828355789184568,
+      "ml_rmse": 1.762304701821714
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": true,
+      "coder_completed": true,
+      "adapter_used": "TabularAdapter",
+      "executor_completed": true,
+      "judge_decisions": [
+        {
+          "iteration": 1,
+          "decision": "FIX",
+          "reason": "Execution encountered errors: KeyError in DataFrame access."
+        },
+        {
+          "iteration": 2,
+          "decision": "FINISH",
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+        }
+      ],
+      "episodic_memory_recorded": true,
+      "requested_k": 5,
+      "actual_retrieved_k": 5
+    },
+    "execution_backend": "mock",
+    "adapter_info": {
+      "selected_adapter": "TabularAdapter",
+      "validation_passed": true,
+      "selected_library": "autogluon.tabular",
+      "execution_backend": "mock"
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "evaluation_id": "eval_fafd0034",
     "case_id": "case_03_house_price_faulty",
     "run_index": 1,
     "llm_mode": "mock",
@@ -110,11 +211,11 @@
     "target_correct": true,
     "success": true,
     "iterations": 2,
-    "perception_time": 0.005,
+    "perception_time": 0.003,
     "retrieval_time": 0.0,
     "coding_time": 0.0,
-    "execution_time": 5.397,
-    "total_time": 5.403,
+    "execution_time": 6.301,
+    "total_time": 6.305,
     "judge_decisions": [
       {
         "iteration": 1,
@@ -124,33 +225,36 @@
       {
         "iteration": 2,
         "decision": "FINISH",
-        "reason": "Execution completed successfully with expected outputs."
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
       }
     ],
     "error_recovery_count": 1,
     "final_status": "SUCCESS",
-    "output_artifacts": [],
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
     "model_artifacts": [],
     "prediction_artifacts": [],
     "metrics": {
       "success": 1.0,
       "iterations": 2,
-      "execution_time": 3.08139967918396,
+      "execution_time": 3.516660690307617,
       "error_category": null,
       "accuracy": null,
       "f1": null,
       "balanced_accuracy": null,
       "mcc": null,
-      "mae": null,
-      "rmse": null,
-      "r2": null,
+      "mae": 30503.667197265626,
+      "rmse": 46593.99313065568,
+      "r2": 0.9000294486944154,
       "recall_at_k": null,
       "precision_at_k": null,
       "mrr": null,
       "ml_accuracy": null,
       "ml_f1": null,
-      "ml_mae": null,
-      "ml_rmse": null
+      "ml_mae": 30503.667197265626,
+      "ml_rmse": 46593.99313065568
     },
     "tokens_input": null,
     "tokens_output": null,
@@ -172,7 +276,7 @@
         {
           "iteration": 2,
           "decision": "FINISH",
-          "reason": "Execution completed successfully with expected outputs."
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
         }
       ],
       "episodic_memory_recorded": true,
@@ -188,5 +292,601 @@
     },
     "requested_k": 5,
     "actual_retrieved_k": 5
+  },
+  {
+    "evaluation_id": "eval_d52dddd3",
+    "case_id": "case_04_tiny_timeseries",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "end_to_end",
+    "selected_library": "autogluon.timeseries",
+    "perceived_task_type": "time_series_forecasting",
+    "perceived_target": "target",
+    "perceived_timestamp_column": "timestamp",
+    "perceived_id_column": "item_id",
+    "task_type_correct": true,
+    "library_correct": true,
+    "target_correct": true,
+    "success": true,
+    "iterations": 1,
+    "perception_time": 0.001,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 0.655,
+    "total_time": 0.657,
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+      }
+    ],
+    "error_recovery_count": 0,
+    "final_status": "SUCCESS",
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 1,
+      "execution_time": 0.5608997344970703,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": 0.1,
+      "rmse": 0.12,
+      "r2": 0.85,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": 0.1,
+      "ml_rmse": 0.12
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": true,
+      "coder_completed": true,
+      "adapter_used": "TimeSeriesAdapter",
+      "executor_completed": true,
+      "judge_decisions": [
+        {
+          "iteration": 1,
+          "decision": "FINISH",
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+        }
+      ],
+      "episodic_memory_recorded": true,
+      "requested_k": 5,
+      "actual_retrieved_k": 1
+    },
+    "execution_backend": "mock",
+    "adapter_info": {
+      "selected_adapter": "TimeSeriesAdapter",
+      "validation_passed": true,
+      "selected_library": "autogluon.timeseries",
+      "execution_backend": "mock"
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 1
+  },
+  {
+    "evaluation_id": "eval_ba5fd8d7",
+    "case_id": "case_05_tiny_image_cls",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "end_to_end",
+    "selected_library": "autogluon.multimodal",
+    "perceived_task_type": "multimodal",
+    "perceived_target": "label",
+    "perceived_timestamp_column": null,
+    "perceived_id_column": null,
+    "task_type_correct": true,
+    "library_correct": true,
+    "target_correct": true,
+    "success": true,
+    "iterations": 1,
+    "perception_time": 0.031,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 0.579,
+    "total_time": 0.611,
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+      }
+    ],
+    "error_recovery_count": 0,
+    "final_status": "SUCCESS",
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 1,
+      "execution_time": 0.5316464900970459,
+      "error_category": null,
+      "accuracy": 0.95,
+      "f1": 0.95,
+      "balanced_accuracy": 0.94,
+      "mcc": 0.89,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": 0.94,
+      "precision_at_k": 0.96,
+      "mrr": null,
+      "ml_accuracy": 0.95,
+      "ml_f1": 0.95,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": true,
+      "coder_completed": true,
+      "adapter_used": "MultiModalAdapter",
+      "executor_completed": true,
+      "judge_decisions": [
+        {
+          "iteration": 1,
+          "decision": "FINISH",
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+        }
+      ],
+      "episodic_memory_recorded": true,
+      "requested_k": 5,
+      "actual_retrieved_k": 1
+    },
+    "execution_backend": "mock",
+    "adapter_info": {
+      "selected_adapter": "MultiModalAdapter",
+      "validation_passed": true,
+      "selected_library": "autogluon.multimodal",
+      "execution_backend": "mock"
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 1
+  },
+  {
+    "evaluation_id": "eval_2c7eb132",
+    "case_id": "case_06_tiny_text_cls",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "end_to_end",
+    "selected_library": "autogluon.tabular",
+    "perceived_task_type": "classification",
+    "perceived_target": "label",
+    "perceived_timestamp_column": null,
+    "perceived_id_column": null,
+    "task_type_correct": true,
+    "library_correct": true,
+    "target_correct": true,
+    "success": true,
+    "iterations": 2,
+    "perception_time": 0.001,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 6.446,
+    "total_time": 6.448,
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+      }
+    ],
+    "error_recovery_count": 1,
+    "final_status": "SUCCESS",
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.421461582183838,
+      "error_category": null,
+      "accuracy": 0.6666666666666666,
+      "f1": 0.6666666666666666,
+      "balanced_accuracy": 0.75,
+      "mcc": 0.5,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": 0.6666666666666666,
+      "precision_at_k": 0.8333333333333334,
+      "mrr": null,
+      "ml_accuracy": 0.6666666666666666,
+      "ml_f1": 0.6666666666666666,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": true,
+      "coder_completed": true,
+      "adapter_used": "TabularAdapter",
+      "executor_completed": true,
+      "judge_decisions": [
+        {
+          "iteration": 1,
+          "decision": "FIX",
+          "reason": "Execution encountered errors: KeyError in DataFrame access."
+        },
+        {
+          "iteration": 2,
+          "decision": "FINISH",
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+        }
+      ],
+      "episodic_memory_recorded": true,
+      "requested_k": 5,
+      "actual_retrieved_k": 5
+    },
+    "execution_backend": "mock",
+    "adapter_info": {
+      "selected_adapter": "TabularAdapter",
+      "validation_passed": true,
+      "selected_library": "autogluon.tabular",
+      "execution_backend": "mock"
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "evaluation_id": "eval_8565340d",
+    "case_id": "case_07_tiny_multimodal",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "end_to_end",
+    "selected_library": "autogluon.multimodal",
+    "perceived_task_type": "multimodal",
+    "perceived_target": "label",
+    "perceived_timestamp_column": null,
+    "perceived_id_column": null,
+    "task_type_correct": false,
+    "library_correct": false,
+    "target_correct": true,
+    "success": true,
+    "iterations": 1,
+    "perception_time": 0.002,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 0.605,
+    "total_time": 0.608,
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+      }
+    ],
+    "error_recovery_count": 0,
+    "final_status": "SUCCESS",
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 1,
+      "execution_time": 0.529179573059082,
+      "error_category": null,
+      "accuracy": 0.95,
+      "f1": 0.95,
+      "balanced_accuracy": 0.94,
+      "mcc": 0.89,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": 0.94,
+      "precision_at_k": 0.96,
+      "mrr": null,
+      "ml_accuracy": 0.95,
+      "ml_f1": 0.95,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": true,
+      "coder_completed": true,
+      "adapter_used": "MultiModalAdapter",
+      "executor_completed": true,
+      "judge_decisions": [
+        {
+          "iteration": 1,
+          "decision": "FINISH",
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+        }
+      ],
+      "episodic_memory_recorded": true,
+      "requested_k": 5,
+      "actual_retrieved_k": 1
+    },
+    "execution_backend": "mock",
+    "adapter_info": {
+      "selected_adapter": "MultiModalAdapter",
+      "validation_passed": true,
+      "selected_library": "autogluon.multimodal",
+      "execution_backend": "mock"
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 1
+  },
+  {
+    "evaluation_id": "eval_7b9c4c0e",
+    "case_id": "case_08_tiny_retrieval",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "end_to_end",
+    "selected_library": "FlagEmbedding",
+    "perceived_task_type": "retrieval",
+    "perceived_target": null,
+    "perceived_timestamp_column": null,
+    "perceived_id_column": null,
+    "task_type_correct": true,
+    "library_correct": true,
+    "target_correct": null,
+    "success": true,
+    "iterations": 1,
+    "perception_time": 0.001,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 0.136,
+    "total_time": 0.138,
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with expected outputs."
+      }
+    ],
+    "error_recovery_count": 0,
+    "final_status": "SUCCESS",
+    "output_artifacts": [],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 1,
+      "execution_time": 0.07011127471923828,
+      "error_category": null,
+      "accuracy": null,
+      "f1": null,
+      "balanced_accuracy": null,
+      "mcc": null,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": 0.92,
+      "precision_at_k": null,
+      "mrr": 0.9,
+      "ml_accuracy": null,
+      "ml_f1": null,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": true,
+      "coder_completed": true,
+      "adapter_used": "RetrievalAdapter",
+      "executor_completed": true,
+      "judge_decisions": [
+        {
+          "iteration": 1,
+          "decision": "FINISH",
+          "reason": "Execution completed successfully with expected outputs."
+        }
+      ],
+      "episodic_memory_recorded": true,
+      "requested_k": 5,
+      "actual_retrieved_k": 0
+    },
+    "execution_backend": "mock",
+    "adapter_info": {
+      "selected_adapter": "RetrievalAdapter",
+      "validation_passed": true,
+      "selected_library": "FlagEmbedding",
+      "execution_backend": "mock"
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 0
+  },
+  {
+    "evaluation_id": "eval_1d6ea5c6",
+    "case_id": "case_09_readme_described",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "end_to_end",
+    "selected_library": "autogluon.tabular",
+    "perceived_task_type": "classification",
+    "perceived_target": "churn",
+    "perceived_timestamp_column": null,
+    "perceived_id_column": null,
+    "task_type_correct": true,
+    "library_correct": true,
+    "target_correct": false,
+    "success": true,
+    "iterations": 2,
+    "perception_time": 0.002,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 6.435,
+    "total_time": 6.437,
+    "judge_decisions": [
+      {
+        "iteration": 1,
+        "decision": "FIX",
+        "reason": "Execution encountered errors: KeyError in DataFrame access."
+      },
+      {
+        "iteration": 2,
+        "decision": "FINISH",
+        "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+      }
+    ],
+    "error_recovery_count": 1,
+    "final_status": "SUCCESS",
+    "output_artifacts": [
+      "outputs\\models\\unknown-run\\predictions.csv",
+      "outputs\\models\\unknown-run\\models"
+    ],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "success": 1.0,
+      "iterations": 2,
+      "execution_time": 4.460721254348755,
+      "error_category": null,
+      "accuracy": 1.0,
+      "f1": 1.0,
+      "balanced_accuracy": 1.0,
+      "mcc": 1.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "mrr": null,
+      "ml_accuracy": 1.0,
+      "ml_f1": 1.0,
+      "ml_mae": null,
+      "ml_rmse": null
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": true,
+      "coder_completed": true,
+      "adapter_used": "TabularAdapter",
+      "executor_completed": true,
+      "judge_decisions": [
+        {
+          "iteration": 1,
+          "decision": "FIX",
+          "reason": "Execution encountered errors: KeyError in DataFrame access."
+        },
+        {
+          "iteration": 2,
+          "decision": "FINISH",
+          "reason": "Execution completed successfully with exit code 0, generating all required predictions, model, and summary metrics."
+        }
+      ],
+      "episodic_memory_recorded": true,
+      "requested_k": 5,
+      "actual_retrieved_k": 5
+    },
+    "execution_backend": "mock",
+    "adapter_info": {
+      "selected_adapter": "TabularAdapter",
+      "validation_passed": true,
+      "selected_library": "autogluon.tabular",
+      "execution_backend": "mock"
+    },
+    "requested_k": 5,
+    "actual_retrieved_k": 5
+  },
+  {
+    "evaluation_id": "eval_5e82edfe",
+    "case_id": "case_10_mixed_directory",
+    "run_index": 1,
+    "llm_mode": "mock",
+    "evaluation_scope": "perception_only",
+    "selected_library": "autogluon.tabular",
+    "perceived_task_type": "classification",
+    "perceived_target": "name",
+    "perceived_timestamp_column": null,
+    "perceived_id_column": null,
+    "task_type_correct": true,
+    "library_correct": true,
+    "target_correct": false,
+    "success": true,
+    "iterations": 0,
+    "perception_time": 0.002,
+    "retrieval_time": 0.0,
+    "coding_time": 0.0,
+    "execution_time": 0.0,
+    "total_time": 0.003,
+    "judge_decisions": [],
+    "error_recovery_count": 0,
+    "final_status": "SUCCESS",
+    "output_artifacts": [],
+    "model_artifacts": [],
+    "prediction_artifacts": [],
+    "metrics": {
+      "perception_success": 1.0
+    },
+    "tokens_input": null,
+    "tokens_output": null,
+    "estimated_cost": null,
+    "error_category": null,
+    "failure_reason": null,
+    "pipeline_trace": {
+      "perception_completed": true,
+      "semantic_memory_completed": false,
+      "coder_completed": false,
+      "adapter_used": "None",
+      "executor_completed": false,
+      "judge_decisions": [],
+      "episodic_memory_recorded": false,
+      "requested_k": 0,
+      "actual_retrieved_k": 0
+    },
+    "execution_backend": "mock",
+    "adapter_info": {},
+    "requested_k": 5,
+    "actual_retrieved_k": 0
   }
 ]

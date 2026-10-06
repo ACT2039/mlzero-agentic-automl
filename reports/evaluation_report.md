@@ -1,10 +1,10 @@
-# MLZero Evaluation Report — MLZero_Smoke_Evaluation
+# MLZero Evaluation Report — MLZero_Local_Formal_Evaluation
 
 ## 1. Reproducibility & Environment Metadata
 
-- **Timestamp:** `2026-09-20T17:52:18.102312+00:00`
+- **Timestamp:** `2026-10-05T12:31:33.360871+00:00`
 - **Python Version:** `3.11.9`
-- **Platform:** `Windows-10-10.0.26200-SP0`
+- **Platform:** `Windows-10-10.0.26300-SP0`
 - **Git Commit:** `Local Worktree`
 - **LLM Mode:** `mock`
 - **Runs Per Case:** `1`
@@ -20,7 +20,7 @@
 > Zero results are hardcoded or manually constructed.
 
 - **Raw Run Records File:** [`reports/evaluation_runs.json`](file:///C:/Users/LENOVO/OneDrive/Desktop/mlzero-agentic-automl/reports/evaluation_runs.json)
-- **Total Measured Run Traces:** `2`
+- **Total Measured Run Traces:** `10`
 
 ### Pipeline Execution Trace
 
@@ -30,7 +30,15 @@ For every end-to-end benchmark run, the complete pipeline step sequence is dynam
 | Case ID | Perception | Semantic Retrieval | Coder | Adapter Used | Executor | Judge Decisions | Episodic Memory |
 |---|---|---|---|---|---|---|---|
 | `case_01_tiny_cls` | `True` | `True` | `True` | `TabularAdapter` | `True` | `['FIX', 'FINISH']` | `True` |
+| `case_02_tiny_reg` | `True` | `True` | `True` | `TabularAdapter` | `True` | `['FIX', 'FINISH']` | `True` |
 | `case_03_house_price_faulty` | `True` | `True` | `True` | `TabularAdapter` | `True` | `['FIX', 'FINISH']` | `True` |
+| `case_04_tiny_timeseries` | `True` | `True` | `True` | `TimeSeriesAdapter` | `True` | `['FINISH']` | `True` |
+| `case_05_tiny_image_cls` | `True` | `True` | `True` | `MultiModalAdapter` | `True` | `['FINISH']` | `True` |
+| `case_06_tiny_text_cls` | `True` | `True` | `True` | `TabularAdapter` | `True` | `['FIX', 'FINISH']` | `True` |
+| `case_07_tiny_multimodal` | `True` | `True` | `True` | `MultiModalAdapter` | `True` | `['FINISH']` | `True` |
+| `case_08_tiny_retrieval` | `True` | `True` | `True` | `RetrievalAdapter` | `True` | `['FINISH']` | `True` |
+| `case_09_readme_described` | `True` | `True` | `True` | `TabularAdapter` | `True` | `['FIX', 'FINISH']` | `True` |
+| `case_10_mixed_directory` | `True` | `False` | `False` | `None` | `False` | `[]` | `False` |
 
 ### Mock Backend vs Real Backend
 
@@ -46,17 +54,25 @@ Benchmark cases are explicitly categorized by evaluation scope:
 ## 4. Overall Performance Metrics
 
 - **Overall Pipeline Success Rate:** `100.00%`
-- **Library Selection Routing Accuracy:** `100.00%`
-- **Task Perception Accuracy:** `100.00%`
-- **Average Iterations:** `2.00`
-- **Average Execution Time:** `5.47s`
+- **Library Selection Routing Accuracy:** `90.00%`
+- **Task Perception Accuracy:** `90.00%`
+- **Average Iterations:** `1.40`
+- **Average Execution Time:** `3.30s`
 
 ## 5. End-to-End Cross-Modality Benchmark Matrix
 
 | Case ID | Case Name | Task | Expected Library | Scope | Library Acc | Success Rate | Avg Iters | Mean Time | Key Metric |
 |---|---|---|---|---|---|---|---|---|---|
-| `case_01_tiny_cls` | Tiny Tabular Classification | `classification` | `autogluon.tabular` | `end_to_end` | `100%` | `100%` | `2.0` | `5.54s` | `N/A` |
-| `case_03_house_price_faulty` | House Price Faulty Data Quality | `regression` | `autogluon.tabular` | `end_to_end` | `100%` | `100%` | `2.0` | `5.40s` | `N/A` |
+| `case_01_tiny_cls` | Tiny Tabular Classification | `classification` | `autogluon.tabular` | `end_to_end` | `100%` | `100%` | `2.0` | `6.41s` | `accuracy=0.75` |
+| `case_02_tiny_reg` | Tiny Tabular Regression | `regression` | `autogluon.tabular` | `end_to_end` | `100%` | `100%` | `2.0` | `5.42s` | `mae=1.1828` |
+| `case_03_house_price_faulty` | House Price Faulty Data Quality | `regression` | `autogluon.tabular` | `end_to_end` | `100%` | `100%` | `2.0` | `6.30s` | `mae=30503.6672` |
+| `case_04_tiny_timeseries` | Tiny Multi-Series Time-Series Forecasting | `time_series_forecasting` | `autogluon.timeseries` | `end_to_end` | `100%` | `100%` | `1.0` | `0.66s` | `mae=0.1` |
+| `case_05_tiny_image_cls` | Tiny Image Classification | `multimodal` | `autogluon.multimodal` | `end_to_end` | `100%` | `100%` | `1.0` | `0.61s` | `accuracy=0.95` |
+| `case_06_tiny_text_cls` | Tiny Text Classification | `classification` | `autogluon.tabular` | `end_to_end` | `100%` | `100%` | `2.0` | `6.45s` | `accuracy=0.6667` |
+| `case_07_tiny_multimodal` | Tiny Multimodal Text & Tabular | `classification` | `autogluon.tabular` | `end_to_end` | `0%` | `100%` | `1.0` | `0.61s` | `accuracy=0.95` |
+| `case_08_tiny_retrieval` | Tiny Dense Retrieval Corpus | `retrieval` | `FlagEmbedding` | `end_to_end` | `100%` | `100%` | `1.0` | `0.14s` | `recall_at_k=0.92` |
+| `case_09_readme_described` | README Described Task | `classification` | `autogluon.tabular` | `end_to_end` | `100%` | `100%` | `2.0` | `6.44s` | `accuracy=1.0` |
+| `case_10_mixed_directory` | Mixed Directory Perception Case | `classification` | `autogluon.tabular` | `perception_only` | `100%` | `100%` | `0.0` | `0.00s` | `N/A` |
 
 ## 8. Comparison with MLZero Paper
 

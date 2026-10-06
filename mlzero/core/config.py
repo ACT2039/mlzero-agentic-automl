@@ -15,8 +15,8 @@ class AppConfig(BaseModel):
     name: str = "mlzero"
     version: str = "0.1.0"
     debug: bool = False
-    api_host: str = "127.0.0.1"
-    api_port: int = 8000
+    api_host: str = Field(default_factory=lambda: os.environ.get("HOST", "127.0.0.1"))
+    api_port: int = Field(default_factory=lambda: int(os.environ.get("PORT", "8000")))
     ui_host: str = "127.0.0.1"
     ui_port: int = 7860
     allowed_data_root: str = "."
@@ -110,12 +110,15 @@ class Settings(BaseSettings):
     """
     openai_api_key: str = ""
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.6-flash"
     openrouter_api_key: str = ""
+    groq_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    openrouter_model: str = "google/gemini-3.8-flash"
+    openrouter_model: str = "openrouter/free"
     llm_mode: str = "mock"
-    real_llm_provider: str = "gemini"
-    real_llm_model: str = "gemini-3.8-flash"
+    real_llm_provider: str = "groq"
+    real_llm_model: str = "openai/gpt-oss-20b"
+    groq_fallback_models: list[str] = Field(default_factory=lambda: ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"])
     real_llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
     hf_token: str = ""
     environment: str = "development"

@@ -71,6 +71,10 @@ class PythonRunner:
         effective_timeout = timeout_seconds if timeout_seconds is not None else self.timeout
 
         try:
+            # Auto-sanitize code to ensure valid line endings and prevent corrupted literal \n
+            if code and r"\n" in code and ("\n" not in code or code.count(r"\n") > code.count("\n")):
+                code = code.replace(r"\r\n", "\n").replace(r"\n", "\n").replace(r"\t", "\t")
+
             script_path.write_text(code, encoding="utf-8")
 
             # Store optional bash script as an artifact
@@ -139,28 +143,67 @@ class PythonRunner:
             if len(stderr.encode("utf-8")) > self.max_stderr:
                 stderr = stderr[:self.max_stderr] + "\n...[TRUNCATED]"
 
-            # Collect output files from output dir AND workspace root (excluding internal files)
+            # Collect output files and directories from output dir AND workspace root (excluding internal files)
             output_files: list[str] = []
             if out_dir.exists():
-                for root, _, files in os.walk(out_dir):
+                for root, dirs, files in os.walk(out_dir):
+                    for d in dirs:
+                        rel_d_out = Path(root).joinpath(d).relative_to(out_dir).as_posix()
+                        rel_d_ws = Path(root).joinpath(d).relative_to(temp_path).as_posix()
+                        if rel_d_ws not in output_files:
+                            output_files.append(rel_d_ws)
+                        if rel_d_out not in output_files:
+                            output_files.append(rel_d_out)
                     for file in files:
-                        rel_path = Path(root).joinpath(file).relative_to(out_dir)
-                        output_files.append(str(rel_path))
+                        rel_f_out = Path(root).joinpath(file).relative_to(out_dir).as_posix()
+                        rel_f_ws = Path(root).joinpath(file).relative_to(temp_path).as_posix()
+                        if rel_f_ws not in output_files:
+                            output_files.append(rel_f_ws)
+                        if rel_f_out not in output_files:
+                            output_files.append(rel_f_out)
 
             internal_files = {"script.py", "setup.sh"}
             for item in temp_path.iterdir():
-                if item.is_file() and item.name not in internal_files and item.name not in output_files:
-                    output_files.append(item.name)
+                clean_name = item.name.replace("\\", "/")
+                if item.name not in internal_files and clean_name not in output_files and item.name != "out":
+                    output_files.append(clean_name)
 
             # Validate expected output files
             missing_expected: list[str] = []
             if expected_output_files and success:
                 for exp_file in expected_output_files:
                     norm_exp = exp_file.replace("/", "\\") if os.name == "nt" else exp_file.replace("\\", "/")
+                    base_name = Path(exp_file).name
+
+                    # 1. Match against collected output files/dirs
                     file_found = any(
-                        out_f == exp_file or out_f == norm_exp or Path(out_f).name == Path(exp_file).name
+                        out_f == exp_file or out_f == norm_exp or Path(out_f).name == base_name
                         for out_f in output_files
                     )
+                    # 2. Check disk directly in workspace / out directory
+                    if not file_found:
+                        file_found = (
+                            (temp_path / exp_file).exists()
+                            or (out_dir / exp_file).exists()
+                            or (out_dir / base_name).exists()
+                            or (temp_path / base_name).exists()
+                        )
+                    # 3. Model directory alias check (AutogluonModels)
+                    if not file_found and "model" in exp_file.lower():
+                        ag_candidates = [
+                            temp_path / "AutogluonModels",
+                            out_dir / "AutogluonModels",
+                        ]
+                        found_ag = next((c for c in ag_candidates if c.exists()), None)
+                        if found_ag:
+                            file_found = True
+                            target_models = out_dir / "models"
+                            if not target_models.exists() or not any(target_models.iterdir()):
+                                try:
+                                    shutil.copytree(found_ag, target_models, dirs_exist_ok=True)
+                                except (OSError, shutil.Error):
+                                    pass
+
                     if not file_found:
                         missing_expected.append(exp_file)
 

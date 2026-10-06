@@ -2,13 +2,16 @@
 LLM Client Abstraction.
 """
 import json
+import logging
 import re
 import time
 from abc import ABC, abstractmethod
 from typing import Any, TypeVar
 
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -17,7 +20,7 @@ class LLMClient(ABC):
     """Abstract interface for LLM interactions."""
     
     @abstractmethod
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, max_tokens: int | None = None) -> str:
         """
         Generate raw text from the LLM.
         
@@ -29,7 +32,7 @@ class LLMClient(ABC):
         """
 
     @abstractmethod
-    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+    def generate_structured(self, prompt: str, schema: type[T], max_tokens: int | None = None) -> T:
         """
         Generate a structured response from the LLM based on a Pydantic schema.
         
@@ -52,11 +55,11 @@ class MockLLMClient(LLMClient):
         """
         self.mock_responses = mock_responses or {}
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, max_tokens: int | None = None) -> str:
         """Returns deterministic mock text."""
         return "Mock LLM text response."
         
-    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+    def generate_structured(self, prompt: str, schema: type[T], max_tokens: int | None = None) -> T:
         """Returns deterministic mock data."""
         schema_name = schema.__name__
         
@@ -143,7 +146,7 @@ class MockLLMClient(LLMClient):
                     "preds = pd.DataFrame({'prediction': [1.0] * len(df)})\n"
                     "preds.to_csv('out/predictions.csv', index=False)\n"
                     "with open('out/summary.json', 'w') as f:\n"
-                    "    json.dump({'success': True, 'metrics': {'mae': 0.1}}, f)\n"
+                    "    json.dump({'success': True, 'metrics': {'mae': 0.1, 'rmse': 0.12, 'r2': 0.85, 'mse': 0.014}}, f)\n"
                     "print('SUCCESS')\n"
                 )
                 return schema(code=code, language="python", dependencies=[], status="generated")
@@ -156,7 +159,7 @@ class MockLLMClient(LLMClient):
                     "preds = pd.DataFrame({'prediction': [0, 1]})\n"
                     "preds.to_csv('out/predictions.csv', index=False)\n"
                     "with open('out/summary.json', 'w') as f:\n"
-                    "    json.dump({'success': True, 'metrics': {'accuracy': 0.95}}, f)\n"
+                    "    json.dump({'success': True, 'metrics': {'accuracy': 0.95, 'balanced_accuracy': 0.94, 'f1': 0.95, 'precision': 0.96, 'recall': 0.94, 'mcc': 0.89}}, f)\n"
                     "print('SUCCESS')\n"
                 )
                 return schema(code=code, language="python", dependencies=[], status="generated")
@@ -169,7 +172,7 @@ class MockLLMClient(LLMClient):
                     "with open('out/retrieval_results.json', 'w') as f:\n"
                     "    json.dump(results, f)\n"
                     "with open('out/summary.json', 'w') as f:\n"
-                    "    json.dump({'success': True, 'metrics': {'mrr': 0.9}}, f)\n"
+                    "    json.dump({'success': True, 'metrics': {'mrr': 0.9, 'ndcg': 0.88, 'map': 0.85, 'recall_at_k': 0.92}}, f)\n"
                     "print('SUCCESS')\n"
                 )
                 return schema(code=code, language="python", dependencies=[], status="generated")
@@ -182,7 +185,7 @@ class MockLLMClient(LLMClient):
                     "preds = pd.DataFrame({'prediction': [0, 1]})\n"
                     "preds.to_csv('out/predictions.csv', index=False)\n"
                     "with open('out/summary.json', 'w') as f:\n"
-                    "    json.dump({'success': True, 'metrics': {'f1': 0.88}}, f)\n"
+                    "    json.dump({'success': True, 'metrics': {'accuracy': 0.90, 'balanced_accuracy': 0.89, 'f1': 0.88, 'precision': 0.89, 'recall': 0.87, 'mcc': 0.79}}, f)\n"
                     "print('SUCCESS')\n"
                 )
                 return schema(code=code, language="python", dependencies=[], status="generated")
@@ -246,6 +249,25 @@ class MockLLMClient(LLMClient):
                         "preds = predictor.predict(test_features)\n"
                         "preds.to_csv('out/predictions.csv', index=False)\n"
                         "metrics = predictor.evaluate(train_df)\n"
+                        "try:\n"
+                        "    import numpy as np\n"
+                        "    from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, matthews_corrcoef, mean_squared_error, mean_absolute_error, r2_score\n"
+                        f"    y_true = train_df['{target_col}']\n"
+                        "    y_pred = predictor.predict(train_df)\n"
+                        f"    if '{task_type}' == 'regression':\n"
+                        "        metrics['rmse'] = float(np.sqrt(mean_squared_error(y_true, y_pred)))\n"
+                        "        metrics['mae'] = float(mean_absolute_error(y_true, y_pred))\n"
+                        "        metrics['r2'] = float(r2_score(y_true, y_pred))\n"
+                        "        metrics['mse'] = float(mean_squared_error(y_true, y_pred))\n"
+                        "    else:\n"
+                        "        metrics['accuracy'] = float(accuracy_score(y_true, y_pred))\n"
+                        "        metrics['balanced_accuracy'] = float(balanced_accuracy_score(y_true, y_pred))\n"
+                        "        metrics['f1'] = float(f1_score(y_true, y_pred, average='weighted', zero_division=0))\n"
+                        "        metrics['precision'] = float(precision_score(y_true, y_pred, average='weighted', zero_division=0))\n"
+                        "        metrics['recall'] = float(recall_score(y_true, y_pred, average='weighted', zero_division=0))\n"
+                        "        metrics['mcc'] = float(matthews_corrcoef(y_true, y_pred))\n"
+                        "except Exception:\n"
+                        "    pass\n"
                         "summary = {'success': True, 'model_path': 'out/models', 'metrics': metrics}\n"
                         "with open('out/summary.json', 'w') as f:\n"
                         "    json.dump(summary, f)\n"
@@ -263,6 +285,25 @@ class MockLLMClient(LLMClient):
                         "preds = predictor.predict(test_df)\n"
                         "preds.to_csv('out/predictions.csv', index=False)\n"
                         "metrics = predictor.evaluate(train_df)\n"
+                        "try:\n"
+                        "    import numpy as np\n"
+                        "    from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, matthews_corrcoef, mean_squared_error, mean_absolute_error, r2_score\n"
+                        f"    y_true = train_df['{target_col}']\n"
+                        "    y_pred = predictor.predict(train_df)\n"
+                        f"    if '{task_type}' == 'regression':\n"
+                        "        metrics['rmse'] = float(np.sqrt(mean_squared_error(y_true, y_pred)))\n"
+                        "        metrics['mae'] = float(mean_absolute_error(y_true, y_pred))\n"
+                        "        metrics['r2'] = float(r2_score(y_true, y_pred))\n"
+                        "        metrics['mse'] = float(mean_squared_error(y_true, y_pred))\n"
+                        "    else:\n"
+                        "        metrics['accuracy'] = float(accuracy_score(y_true, y_pred))\n"
+                        "        metrics['balanced_accuracy'] = float(balanced_accuracy_score(y_true, y_pred))\n"
+                        "        metrics['f1'] = float(f1_score(y_true, y_pred, average='weighted', zero_division=0))\n"
+                        "        metrics['precision'] = float(precision_score(y_true, y_pred, average='weighted', zero_division=0))\n"
+                        "        metrics['recall'] = float(recall_score(y_true, y_pred, average='weighted', zero_division=0))\n"
+                        "        metrics['mcc'] = float(matthews_corrcoef(y_true, y_pred))\n"
+                        "except Exception:\n"
+                        "    pass\n"
                         "summary = {'success': True, 'model_path': 'out/models', 'metrics': metrics}\n"
                         "with open('out/summary.json', 'w') as f:\n"
                         "    json.dump(summary, f)\n"
@@ -317,7 +358,7 @@ class MockLLMClient(LLMClient):
             if target_match:
                 target_col = target_match.group(1)
             else:
-                target_match2 = re.search(r'Target Column:\s*([^\n\r]+)', prompt)
+                target_match2 = re.search(r'Target(?: Column)?:\s*([^\n\r,]+)', prompt)
                 if target_match2:
                     target_col = target_match2.group(1).strip()
 
@@ -336,7 +377,18 @@ class MockLLMClient(LLMClient):
                     suggested_fix=f"Correct the label column name to '{target_col}'."
                 )
             
-            # 2. Check for DataQuality / ValueError / conversion issues
+            # 2. Check for FileNotFoundError / invalid path issues
+            if any(k in prompt_lower for k in ("filenotfound", "no such file", "invalid dataset path", "dataset path", "directory does not exist")):
+                return schema(
+                    iteration=1,
+                    error_category="FileNotFoundError",
+                    error_summary="Input dataset file or directory path not found.",
+                    error_message="Input dataset file or directory path not found.",
+                    stderr_excerpt="FileNotFoundError",
+                    suggested_fix="Verify and provide correct file paths."
+                )
+
+            # 3. Check for DataQuality / ValueError / conversion issues
             if any(err in prompt_lower for err in [
                 "could not convert string to float",
                 "cannot multiply sequence",
@@ -352,17 +404,6 @@ class MockLLMClient(LLMClient):
                     error_message="Non-numeric or malformed values in numeric/target columns prevent model fitting.",
                     stderr_excerpt="ValueError: could not convert string to float",
                     suggested_fix="Coerce invalid numeric values to NaN, drop rows with invalid target values, and impute missing feature values before training."
-                )
-                
-            # 3. Check for FileNotFoundError
-            if "filenotfound" in prompt_lower or "no such file" in prompt_lower:
-                return schema(
-                    iteration=1,
-                    error_category="FileNotFoundError",
-                    error_summary="Input dataset file not found.",
-                    error_message="Input dataset file not found.",
-                    stderr_excerpt="FileNotFoundError",
-                    suggested_fix="Verify and provide correct file paths."
                 )
 
             # 4. Check for NameError
@@ -491,7 +532,10 @@ class GeminiProviderClient(LLMClient):
             raise PermanentLLMError(
                 "Gemini API key is required. Set GEMINI_API_KEY in environment or .env file."
             )
-        self.model = model or settings.real_llm_model or settings.llm.model
+        target_model = model or getattr(settings, "gemini_model", None) or settings.llm.model
+        if not target_model or not target_model.startswith("gemini"):
+            target_model = "gemini-3.6-flash"
+        self.model = target_model
         raw_url = base_url or settings.real_llm_base_url
         self.base_url = raw_url.rstrip("/") + "/"
         self.timeout = timeout or settings.llm.timeout
@@ -500,7 +544,7 @@ class GeminiProviderClient(LLMClient):
     def _sanitize(self, text: str) -> str:
         return sanitize_secrets(text, [self.api_key])
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, max_tokens: int | None = None) -> str:
         url = f"{self.base_url}chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -540,7 +584,7 @@ class GeminiProviderClient(LLMClient):
         msg = self._sanitize(str(last_error))
         raise TransientLLMError(f"Gemini request failed after {self.retry_count} attempts: {msg}") from None
 
-    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+    def generate_structured(self, prompt: str, schema: type[T], max_tokens: int | None = None) -> T:
         url = f"{self.base_url}chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -606,6 +650,8 @@ class GeminiProviderClient(LLMClient):
 
 class OpenRouterProviderClient(LLMClient):
     """OpenRouter LLM Client using OpenAI-compatible endpoint."""
+    
+    _cached_free_models: list[str] | None = None
 
     def __init__(
         self,
@@ -622,16 +668,48 @@ class OpenRouterProviderClient(LLMClient):
             raise PermanentLLMError(
                 "OpenRouter API key is required. Set OPENROUTER_API_KEY in environment or .env file."
             )
-        self.model = model or settings.openrouter_model or "google/gemini-3.8-flash"
+        self.model = model or settings.openrouter_model or "openrouter/free"
         raw_url = base_url or settings.openrouter_base_url or "https://openrouter.ai/api/v1"
         self.base_url = raw_url.rstrip("/") + "/"
         self.timeout = timeout or settings.llm.timeout
         self.retry_count = retry_count or settings.llm.retry_count
 
+    def _get_fallback_models(self) -> list[str]:
+        if OpenRouterProviderClient._cached_free_models is not None:
+            return OpenRouterProviderClient._cached_free_models
+
+        try:
+            with httpx.Client(timeout=10.0) as client:
+                resp = client.get(f"{self.base_url}models")
+                resp.raise_for_status()
+                data = resp.json()
+
+            free_models = []
+            for m in data.get("data", []):
+                pricing = m.get("pricing", {})
+                if pricing.get("prompt") == "0" and pricing.get("completion") == "0":
+                    supported = m.get("supported_parameters", [])
+                    if "response_format" in supported or "structured_outputs" in supported:
+                        free_models.append(m["id"])
+            
+            if not free_models:
+                for m in data.get("data", []):
+                    pricing = m.get("pricing", {})
+                    if pricing.get("prompt") == "0" and pricing.get("completion") == "0":
+                        free_models.append(m["id"])
+
+            OpenRouterProviderClient._cached_free_models = free_models[:3]
+            if not OpenRouterProviderClient._cached_free_models:
+                OpenRouterProviderClient._cached_free_models = ["openrouter/free"]
+            
+            return OpenRouterProviderClient._cached_free_models
+        except Exception:  # noqa: BLE001
+            return ["openrouter/free"]
+
     def _sanitize(self, text: str) -> str:
         return sanitize_secrets(text, [self.api_key])
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, max_tokens: int | None = None) -> str:
         url = f"{self.base_url}chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -639,10 +717,15 @@ class OpenRouterProviderClient(LLMClient):
             "HTTP-Referer": "https://github.com/mlzero-agentic-automl",
             "X-Title": "MLZero Agentic AutoML",
         }
-        payload = {
-            "model": self.model,
+        from mlzero.core.config import settings as _settings
+        payload: dict[str, Any] = {
             "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens or _settings.llm.max_tokens,
         }
+        if self.model == "openrouter/free":
+            payload["models"] = self._get_fallback_models()
+        else:
+            payload["model"] = self.model
 
         last_error: Exception | None = None
         for attempt in range(self.retry_count):
@@ -673,7 +756,7 @@ class OpenRouterProviderClient(LLMClient):
         msg = self._sanitize(str(last_error))
         raise TransientLLMError(f"OpenRouter request failed after {self.retry_count} attempts: {msg}") from None
 
-    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+    def generate_structured(self, prompt: str, schema: type[T], max_tokens: int | None = None) -> T:
         url = f"{self.base_url}chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -685,17 +768,23 @@ class OpenRouterProviderClient(LLMClient):
         system_instruction = (
             "You are a helpful AI assistant that outputs strictly valid JSON matching the following JSON Schema.\n"
             f"JSON Schema:\n{schema_json}\n"
-            "Do NOT include any markdown formatting, do NOT wrap the output in ```json ... ```, and output ONLY the raw JSON object."
+            "Do NOT include any markdown formatting, do NOT wrap the output in ```json ... ```, and output ONLY the raw JSON object.\n"
+            "CRITICAL: Escape all newline characters as \\n in strings. Do not use literal newlines inside JSON strings!"
         )
 
+        from mlzero.core.config import settings as _settings
         payload: dict[str, Any] = {
-            "model": self.model,
             "messages": [
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": prompt},
             ],
             "response_format": {"type": "json_object"},
+            "max_tokens": max_tokens or _settings.llm.max_tokens,
         }
+        if self.model == "openrouter/free":
+            payload["models"] = self._get_fallback_models()
+        else:
+            payload["model"] = self.model
 
         last_error: Exception | None = None
         for attempt in range(self.retry_count):
@@ -704,9 +793,11 @@ class OpenRouterProviderClient(LLMClient):
                     response = client.post(url, headers=headers, json=payload)
                     response.raise_for_status()
                     data = response.json()
-                    raw_content = str(data["choices"][0]["message"]["content"])
+                    raw_content = data["choices"][0]["message"]["content"]
+                    if raw_content is None or (isinstance(raw_content, str) and raw_content.strip().lower() in ("none", "")):
+                        raise ValueError("OpenRouter returned empty/null content")
 
-                clean_content = raw_content.strip()
+                clean_content = str(raw_content).strip()
                 match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", clean_content, re.DOTALL)
                 if match:
                     clean_content = match.group(1)
@@ -742,43 +833,43 @@ class OpenRouterProviderClient(LLMClient):
 class FallbackLLMClient(LLMClient):
     """
     LLM Client wrapping a primary provider and an optional fallback provider.
-    Automatically falls back to secondary provider on transient errors (429, 500, 502, 503, 504, timeout).
+    Automatically falls back to secondary provider on transient errors or provider capacity/rate failures.
     """
 
     def __init__(self, primary: LLMClient, fallback: LLMClient | None = None):
         self.primary = primary
         self.fallback = fallback
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, max_tokens: int | None = None) -> str:
         try:
-            return self.primary.generate_text(prompt)
+            return self.primary.generate_text(prompt, max_tokens=max_tokens)
         except TransientLLMError as e:
             if self.fallback is not None:
                 from mlzero.core.logger import setup_logger
                 logger = setup_logger(__name__)
                 logger.warning(
-                    f"Primary LLM provider failed with transient error: {e}. Falling back to secondary provider..."
+                    f"Primary LLM provider failed with error: {e}. Falling back to secondary provider..."
                 )
                 try:
-                    return self.fallback.generate_text(prompt)
+                    return self.fallback.generate_text(prompt, max_tokens=max_tokens)
                 except Exception as fallback_err:  # noqa: BLE001
                     raise RuntimeError(
                         f"Both LLM providers failed. Primary error: {e} | Fallback error: {fallback_err}"
                     ) from None
             raise
 
-    def generate_structured(self, prompt: str, schema: type[T]) -> T:
+    def generate_structured(self, prompt: str, schema: type[T], max_tokens: int | None = None) -> T:
         try:
-            return self.primary.generate_structured(prompt, schema)
+            return self.primary.generate_structured(prompt, schema, max_tokens=max_tokens)
         except TransientLLMError as e:
             if self.fallback is not None:
                 from mlzero.core.logger import setup_logger
                 logger = setup_logger(__name__)
                 logger.warning(
-                    f"Primary LLM provider structured generation failed with transient error: {e}. Falling back to secondary provider..."
+                    f"Primary LLM provider structured generation failed with error: {e}. Falling back to secondary provider..."
                 )
                 try:
-                    return self.fallback.generate_structured(prompt, schema)
+                    return self.fallback.generate_structured(prompt, schema, max_tokens=max_tokens)
                 except Exception as fallback_err:  # noqa: BLE001
                     raise RuntimeError(
                         f"Both LLM providers failed structured generation. Primary error: {e} | Fallback error: {fallback_err}"
@@ -802,27 +893,52 @@ class RealLLMClient(LLMClient):
     ):
         from mlzero.core.config import settings
 
-        selected_provider = (provider or settings.real_llm_provider or "gemini").lower()
+        selected_provider = (provider or settings.real_llm_provider or "groq").lower()
         
         primary_client: LLMClient
         fallback_client: LLMClient | None = None
 
-        if selected_provider == "openrouter":
+        def safe_gemini() -> LLMClient | None:
+            if settings.gemini_api_key and settings.gemini_api_key.strip():
+                gem_m = getattr(settings, "gemini_model", None) or "gemini-3.6-flash"
+                try: return GeminiProviderClient(
+                    model=gem_m,
+                    timeout=timeout, retry_count=retry_count,
+                )
+                except Exception: return None  # noqa: BLE001
+            return None
+
+        def safe_openrouter() -> LLMClient | None:
+            if settings.openrouter_api_key and settings.openrouter_api_key.strip():
+                try: return OpenRouterProviderClient(timeout=timeout, retry_count=retry_count)
+                except Exception: return None  # noqa: BLE001
+            return None
+
+        if selected_provider == "groq":
+            primary_client = GroqProviderClient(
+                api_key=api_key or settings.groq_api_key or None,
+                model=model or settings.real_llm_model or "openai/gpt-oss-120b",
+                timeout=timeout,
+                retry_count=retry_count,
+            )
+            g_client = safe_gemini()
+            o_client = safe_openrouter()
+            if g_client and o_client:
+                fallback_client = FallbackLLMClient(primary=g_client, fallback=o_client)
+            elif g_client:
+                fallback_client = g_client
+            else:
+                fallback_client = o_client
+        elif selected_provider == "openrouter":
             primary_client = OpenRouterProviderClient(
                 api_key=api_key or settings.openrouter_api_key or None,
-                model=model or settings.openrouter_model or "google/gemini-3.8-flash",
+                model=model or settings.openrouter_model or "openrouter/free",
                 base_url=base_url or settings.openrouter_base_url,
                 timeout=timeout,
                 retry_count=retry_count,
             )
-            # Fallback to Gemini if key available
-            if settings.gemini_api_key and settings.gemini_api_key.strip():
-                try:
-                    fallback_client = GeminiProviderClient(timeout=timeout, retry_count=retry_count)
-                except Exception:  # noqa: BLE001
-                    fallback_client = None
+            fallback_client = safe_gemini()
         else:
-            # Default to Gemini
             primary_client = GeminiProviderClient(
                 api_key=api_key or settings.gemini_api_key or None,
                 model=model or settings.real_llm_model or settings.llm.model,
@@ -830,12 +946,7 @@ class RealLLMClient(LLMClient):
                 timeout=timeout,
                 retry_count=retry_count,
             )
-            # Fallback to OpenRouter if key available
-            if settings.openrouter_api_key and settings.openrouter_api_key.strip():
-                try:
-                    fallback_client = OpenRouterProviderClient(timeout=timeout, retry_count=retry_count)
-                except Exception:  # noqa: BLE001
-                    fallback_client = None
+            fallback_client = safe_openrouter()
 
         self._client = FallbackLLMClient(primary=primary_client, fallback=fallback_client)
 
@@ -847,11 +958,11 @@ class RealLLMClient(LLMClient):
     def fallback(self) -> LLMClient | None:
         return self._client.fallback
 
-    def generate_text(self, prompt: str) -> str:
-        return self._client.generate_text(prompt)
+    def generate_text(self, prompt: str, max_tokens: int | None = None) -> str:
+        return self._client.generate_text(prompt, max_tokens=max_tokens)
 
-    def generate_structured(self, prompt: str, schema: type[T]) -> T:
-        return self._client.generate_structured(prompt, schema)
+    def generate_structured(self, prompt: str, schema: type[T], max_tokens: int | None = None) -> T:
+        return self._client.generate_structured(prompt, schema, max_tokens=max_tokens)
 
 
 def get_llm_client(
@@ -877,3 +988,280 @@ def get_llm_client(
     else:
         raise ValueError(f"Unknown LLM mode: '{resolved_mode}'. Must be 'mock' or 'real'.")
 
+
+class GroqProviderClient(LLMClient):
+    """Groq LLM Client using OpenAI-compatible endpoint."""
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        timeout: int | None = None,
+        retry_count: int | None = None,
+    ):
+        from mlzero.core.config import settings
+        
+        self.api_key = api_key or settings.groq_api_key
+        if not self.api_key:
+            raise PermanentLLMError(
+                "Groq API key is required. Set GROQ_API_KEY in environment or .env file."
+            )
+        self.model = model or settings.real_llm_model or "openai/gpt-oss-20b"
+        self.base_url = "https://api.groq.com/openai/v1/"
+        self.timeout = timeout or settings.llm.timeout
+        self.retry_count = retry_count or settings.llm.retry_count
+
+    def _sanitize(self, text: str) -> str:
+        return sanitize_secrets(text, [self.api_key])
+
+    def generate_text(self, prompt: str, max_tokens: int | None = None) -> str:
+        url = f"{self.base_url}chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "MLZero/1.0"
+        }
+        from mlzero.core.config import settings as _settings
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": getattr(_settings.llm, "temperature", 0.0),
+            "max_tokens": max_tokens or _settings.llm.max_tokens,
+        }
+
+        last_error: Exception | None = None
+        for attempt in range(self.retry_count):
+            try:
+                with httpx.Client(timeout=self.timeout) as client:
+                    response = client.post(url, headers=headers, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    return str(data["choices"][0]["message"]["content"])
+            except httpx.HTTPStatusError as e:
+                last_error = e
+                status_code = e.response.status_code
+                response_text = e.response.text
+                msg = self._sanitize(f"Groq HTTP {status_code}: {response_text}")
+                
+                is_tpm_or_413 = (
+                    status_code == 413
+                    or "request too large" in response_text.lower()
+                )
+                if is_tpm_or_413:
+                    raw_max = payload.get("max_tokens")
+                    curr_max = int(raw_max) if isinstance(raw_max, (int, float)) else 2048
+                    if curr_max > 1200 and attempt < self.retry_count - 1:
+                        payload["max_tokens"] = 1200
+                        time.sleep(1)
+                        continue
+                    from mlzero.core.config import settings as _settings
+                    alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
+                    if alt_models and attempt < self.retry_count - 1:
+                        payload["model"] = alt_models[0]
+                        self.model = alt_models[0]
+                        time.sleep(1)
+                        continue
+                    raise TransientLLMError(f"Groq request failed due to token limits: {msg}") from None
+
+                if status_code == 429:
+                    import re
+                    if "tokens per day" in response_text or "TPD" in response_text:
+                        from mlzero.core.config import settings as _settings
+                        alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
+                        if alt_models and attempt < self.retry_count - 1:
+                            payload["model"] = alt_models[0]
+                            self.model = alt_models[0]
+                            time.sleep(1)
+                            continue
+                    match = re.search(r"Please try again in ([\d\.]+)s", response_text)
+                    if match and attempt < self.retry_count - 1:
+                        delay = float(match.group(1)) + 0.5
+                        if delay <= 5.0:
+                            time.sleep(delay)
+                            continue
+                    raise TransientLLMError(f"Groq request failed: {msg}") from None
+                    
+                if status_code in (500, 502, 503, 504):
+                    if attempt < self.retry_count - 1:
+                        time.sleep(2 ** attempt)
+                        continue
+                    raise TransientLLMError(f"Groq request failed: {msg}") from None
+                raise PermanentLLMError(f"Groq request failed: {msg}") from None
+            except Exception as e:  # noqa: BLE001
+                last_error = e
+                if attempt < self.retry_count - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                msg = self._sanitize(str(e))
+                raise TransientLLMError(f"Groq request failed: {msg}") from None
+
+        msg = self._sanitize(str(last_error))
+        raise TransientLLMError(f"Groq request failed after {self.retry_count} attempts: {msg}") from None
+
+    def _make_strict(self, schema_obj: dict[str, Any]) -> dict[str, Any]:
+        if not isinstance(schema_obj, dict):
+            return schema_obj
+        if schema_obj.get('type') == 'object' or 'properties' in schema_obj:
+            schema_obj['additionalProperties'] = False
+            props = schema_obj.get('properties', {})
+            if props:
+                schema_obj['required'] = list(props.keys())
+                for v in props.values():
+                    self._make_strict(v)
+        elif schema_obj.get('type') == 'array':
+            if 'items' in schema_obj:
+                self._make_strict(schema_obj['items'])
+        elif 'anyOf' in schema_obj:
+            for opt in schema_obj['anyOf']:
+                self._make_strict(opt)
+                
+        if '$defs' in schema_obj:
+            for v in schema_obj['$defs'].values():
+                self._make_strict(v)
+        return schema_obj
+
+    def generate_structured(self, prompt: str, schema: type[T], max_tokens: int | None = None) -> T:
+        url = f"{self.base_url}chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "MLZero/1.0"
+        }
+        
+        import copy
+        schema_dict = copy.deepcopy(schema.model_json_schema())
+        schema_dict = self._make_strict(schema_dict)
+        
+        from mlzero.core.config import settings as _settings
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": "You are a helpful AI assistant that outputs strictly valid JSON matching the requested schema. Do NOT include any markdown formatting, do NOT wrap the output in ```json ... ```, and output ONLY the raw JSON object. CRITICAL: Escape all newline characters as \\n in strings. Do not use literal newlines inside JSON strings!"},
+                {"role": "user", "content": prompt},
+            ],
+            "response_format": {
+                "type": "json_schema", 
+                "json_schema": {
+                    "name": schema.__name__, 
+                    "schema": schema_dict, 
+                    "strict": True
+                }
+            },
+            "temperature": getattr(_settings.llm, "temperature", 0.0),
+            "max_tokens": max_tokens or _settings.llm.max_tokens,
+        }
+
+        last_error: Exception | None = None
+        for attempt in range(self.retry_count):
+            try:
+                with httpx.Client(timeout=self.timeout) as client:
+                    response = client.post(url, headers=headers, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    content = data["choices"][0]["message"]["content"]
+                    
+                    try:
+                        return schema.model_validate_json(content)
+                    except ValidationError as e:
+                        last_error = e
+                        if attempt == self.retry_count - 1:
+                            break
+                        # Help the model fix it
+                        msgs = payload.get("messages")
+                        if isinstance(msgs, list):
+                            msgs.extend(
+                                [
+                                    {"role": "assistant", "content": content},
+                                    {
+                                        "role": "user",
+                                        "content": f"The previous response failed validation: {self._sanitize(str(e))}. Please output valid JSON matching the schema strictly.",
+                                    }
+                                ]
+                            )
+            except httpx.HTTPStatusError as e:
+                last_error = e
+                status_code = e.response.status_code
+                response_text = e.response.text
+                msg = self._sanitize(f"Groq HTTP {status_code}: {response_text}")
+                
+                # Check for json_validate_failed and recover candidate instance from failed_generation
+                if status_code == 400 and ("failed_generation" in response_text or "json_validate_failed" in response_text):
+                    try:
+                        err_obj = json.loads(response_text)
+                        failed_gen = err_obj.get("error", {}).get("failed_generation", "")
+                        if failed_gen:
+                            import re
+                            sub_parts = re.split(r'\}\s*\{', failed_gen)
+                            for part in reversed(sub_parts):
+                                candidate = part.strip()
+                                if not candidate.startswith('{'):
+                                    candidate = '{' + candidate
+                                if not candidate.endswith('}'):
+                                    candidate = candidate + '}'
+                                try:
+                                    return schema.model_validate_json(candidate)
+                                except ValidationError:
+                                    continue
+                    except Exception as exc:  # noqa: BLE001
+                        logger.debug(f"Failed to extract JSON candidate from failed_generation: {exc}")
+                    if attempt < self.retry_count - 1:
+                        payload["response_format"] = {"type": "json_object"}
+                        time.sleep(1)
+                        continue
+
+                is_tpm_or_413 = (
+                    status_code == 413
+                    or "request too large" in response_text.lower()
+                    or "tokens per minute" in response_text.lower()
+                    or "tpm" in response_text.lower()
+                )
+                if is_tpm_or_413:
+                    raw_max = payload.get("max_tokens")
+                    curr_max = int(raw_max) if isinstance(raw_max, (int, float)) else 2048
+                    if curr_max > 1200 and attempt < self.retry_count - 1:
+                        payload["max_tokens"] = 1200
+                        time.sleep(1)
+                        continue
+                    from mlzero.core.config import settings as _settings
+                    alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
+                    if alt_models and attempt < self.retry_count - 1:
+                        payload["model"] = alt_models[0]
+                        self.model = alt_models[0]
+                        time.sleep(1)
+                        continue
+                    raise TransientLLMError(f"Groq request failed due to token limits: {msg}") from None
+
+                if status_code == 429:
+                    import re
+                    if "tokens per day" in response_text or "TPD" in response_text:
+                        from mlzero.core.config import settings as _settings
+                        alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
+                        if alt_models and attempt < self.retry_count - 1:
+                            payload["model"] = alt_models[0]
+                            self.model = alt_models[0]
+                            time.sleep(1)
+                            continue
+                    match = re.search(r"Please try again in ([\d\.]+)s", response_text)
+                    if match and attempt < self.retry_count - 1:
+                        delay = float(match.group(1)) + 0.5
+                        if delay <= 5.0:
+                            time.sleep(delay)
+                            continue
+                    raise TransientLLMError(f"Groq request failed: {msg}") from None
+
+                if status_code in (500, 502, 503, 504):
+                    if attempt < self.retry_count - 1:
+                        time.sleep(2 ** attempt)
+                        continue
+                    raise TransientLLMError(f"Groq request failed: {msg}") from None
+                raise PermanentLLMError(f"Groq request failed: {msg}") from None
+            except Exception as e:  # noqa: BLE001
+                last_error = e
+                if attempt < self.retry_count - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                msg = self._sanitize(str(e))
+                raise TransientLLMError(f"Groq request failed: {msg}") from None
+
+        msg = self._sanitize(str(last_error))
+        raise TransientLLMError(f"Groq failed to generate valid structured response after {self.retry_count} attempts: {msg}") from None

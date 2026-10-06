@@ -7,6 +7,7 @@ import math
 from typing import Any
 
 from evaluation.schemas import EvaluationRun
+from mlzero.utils.metrics import canonicalize_metrics
 
 
 def extract_metrics(run_status: Any, task_type: str | None = None) -> dict[str, float | int | str | None]:
@@ -43,7 +44,8 @@ def extract_metrics(run_status: Any, task_type: str | None = None) -> dict[str, 
     if not run_status or not getattr(run_status, "final_metrics", None):
         return metrics
 
-    fm: dict[str, Any] = run_status.final_metrics or {}
+    raw_fm: dict[str, Any] = run_status.final_metrics or {}
+    fm: dict[str, Any] = canonicalize_metrics(raw_fm)
 
     # Classification metrics
     for k in ("accuracy", "acc"):
@@ -75,28 +77,6 @@ def extract_metrics(run_status: Any, task_type: str | None = None) -> dict[str, 
         if k in fm and _is_numeric(fm[k]):
             metrics["rmse"] = float(fm[k])
             metrics["ml_rmse"] = float(fm[k])
-            break
-    for k in ("r2", "r_squared"):
-        if k in fm and _is_numeric(fm[k]):
-            metrics["r2"] = float(fm[k])
-            break
-    for k in ("balanced_accuracy", "bal_acc"):
-        if k in fm and _is_numeric(fm[k]):
-            metrics["balanced_accuracy"] = float(fm[k])
-            break
-    for k in ("mcc", "matthews_corrcoef"):
-        if k in fm and _is_numeric(fm[k]):
-            metrics["mcc"] = float(fm[k])
-            break
-
-    # Regression / Time series metrics
-    for k in ("mean_absolute_error", "mae"):
-        if k in fm and _is_numeric(fm[k]):
-            metrics["mae"] = float(fm[k])
-            break
-    for k in ("root_mean_squared_error", "rmse"):
-        if k in fm and _is_numeric(fm[k]):
-            metrics["rmse"] = float(fm[k])
             break
     for k in ("r2", "r_squared"):
         if k in fm and _is_numeric(fm[k]):

@@ -189,6 +189,9 @@ def test_evaluate_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         return RunStatusResponse(run_id="cli-eval", status="SUCCESS", success=True)
 
     monkeypatch.setattr(MLZeroService, "run_mlzero", fake_run)
+    # Redirect report generation to tmp_path so authoritative reports/evaluation_summary.json is never clobbered
+    import evaluation.report
+    monkeypatch.setattr(evaluation.report, "generate_report", lambda results, out_dir=None: None)
 
     with patch.object(sys, "argv", ["mlzero", "evaluate", "--config", str(config_file)]):
         result = main()
