@@ -206,7 +206,7 @@ class DataProfiler:
     Scans train and test CSV files to produce a DataQualityReport.
     """
 
-    MAX_ROWS = 10_000
+    MAX_ROWS = 2_000
     MAX_INVALID_SAMPLES = 5
 
     def __init__(self, dataset_dir: Path):

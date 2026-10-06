@@ -185,6 +185,10 @@ async def upload_dataset(file: UploadFile = File(...)) -> dict[str, Any]:  # noq
                 train_copy.write_bytes(content)
                 saved_files.append("train.csv")
 
+    del content
+    import gc
+    gc.collect()
+
     rel_path = str(upload_dir).replace("\\", "/")
     return {
         "status": "success",

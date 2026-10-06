@@ -102,6 +102,13 @@ class PythonRunner:
                 if key in os.environ:
                     env[key] = os.environ[key]
 
+            # Constrain parallel thread pools to avoid excessive RAM usage in cloud/constrained environments (e.g. 512MB RAM)
+            env.setdefault("OMP_NUM_THREADS", "1")
+            env.setdefault("MKL_NUM_THREADS", "1")
+            env.setdefault("OPENBLAS_NUM_THREADS", "1")
+            env.setdefault("NUMEXPR_NUM_THREADS", "1")
+            env.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+
             # Execute the script
             start_time = time.time()
             timed_out = False
@@ -239,6 +246,9 @@ class PythonRunner:
                 error_info=f"Execution setup exception: {e}"
             )
         finally:
+            import gc
+            gc.collect()
+
             # If not configured to keep artifacts and directory was auto-created, clean up
             if not workspace_dir and not getattr(settings.execution, "keep_artifacts", True):
                 try:

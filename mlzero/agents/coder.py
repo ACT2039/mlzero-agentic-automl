@@ -39,6 +39,7 @@ class CoderAgent:
             "- AutoGluon API: Pass 'eval_metric', 'label', and 'path' to TabularPredictor(...), NEVER to predictor.fit()! fit() will raise ValueError for unrecognized keyword argument 'eval_metric'.\n"
             "- Path Strings: CRITICAL: Always use forward slashes (/) for all file paths (e.g. 'C:/Users/...', 'train.csv', 'out/models'), NEVER backslashes (\\). Backslashes cause fatal Python SyntaxErrors.\n\n"
             "DATA PREPROCESSING RULES:\n"
+            "- Memory & Model Safety: When fitting TabularPredictor, always pass excluded_model_types=['NN_TORCH', 'FASTAI'] into predictor.fit(...) to avoid memory-heavy PyTorch neural networks. If len(train) > 2500, sample down: train = train.sample(n=2500, random_state=42) to keep peak memory well under 400MB and prevent OOM in cloud environments.\n"
             "- CRITICAL TARGET COLUMN RULE: Never drop or remove the target column from 'train'! When defining feature lists like 'train_features = [c for c in train.columns if c != label]', DO NOT do 'train = train[train_features]'. AutoGluon TabularPredictor.fit(train) strictly requires the target column to remain inside 'train'. Only remove the target column from 'test', never from 'train'!\n"
             "- If Data Quality Findings mention missing values (NaNs), explicitly fill/impute them before training. IMPORTANT: Avoid pandas chained assignment FutureWarning by using 'df[col] = df[col].fillna(val)' instead of 'df[col].fillna(val, inplace=True)'.\n"
             "- Always drop NaNs from the target column before training: df = df.dropna(subset=[label]).\n"
@@ -158,6 +159,13 @@ class CoderAgent:
                 artifact.code,
                 flags=re.MULTILINE,
             )
+            # Defensively ensure TabularPredictor.fit() excludes heavy neural networks to avoid OOM
+            if "TabularPredictor" in artifact.code and "excluded_model_types" not in artifact.code:
+                artifact.code = re.sub(
+                    r"(\.fit\s*\([A-Za-z0-9_]+(?:,[^()]*?)?)\)",
+                    r"\1, excluded_model_types=['NN_TORCH', 'FASTAI'])",
+                    artifact.code,
+                )
         return artifact
 
 
