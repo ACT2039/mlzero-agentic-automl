@@ -115,7 +115,7 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "openrouter/free"
-    llm_mode: str = "mock"
+    llm_mode: str = Field(default_factory=lambda: os.environ.get("MLZERO_LLM_MODE", os.environ.get("LLM_MODE", "mock")))
     real_llm_provider: str = "groq"
     real_llm_model: str = "openai/gpt-oss-20b"
     groq_fallback_models: list[str] = Field(default_factory=lambda: ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"])

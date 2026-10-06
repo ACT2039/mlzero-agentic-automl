@@ -217,13 +217,15 @@
     /* Hamburger */
     #hamburger {
       display: none;
-      position: fixed; top: 16px; left: 16px; z-index: 200;
-      background: rgba(10, 14, 24, 0.8);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border);
       border-radius: var(--r); padding: 8px 10px;
       cursor: pointer; color: var(--text2);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    #hamburger:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--text);
     }
     #sidebar-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
@@ -1157,47 +1159,218 @@
       line-height: 1.4;
     }
 
-    /* ── Responsive ──────────────────────────────────────────────────────── */
+    /* ── Responsive Layout & Spacing ─────────────────────────────────────── */
+    .new-run-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 36px;
+      align-items: start;
+    }
+    .run-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+
+    /* Preset pills */
+    .preset-pill-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 8px 0 12px;
+    }
+    .preset-pill-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .preset-pill {
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+    .preset-pill:hover, .preset-pill:focus {
+      background: rgba(0, 113, 227, 0.22);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Upload Box */
+    .upload-box {
+      margin-top: 12px;
+      padding: 18px 16px;
+      border: 1.5px dashed var(--border);
+      border-radius: var(--r);
+      background: rgba(255, 255, 255, 0.025);
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .upload-box:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--primary);
+    }
+
+    /* Mobile Topbar */
+    .mobile-topbar { display: none; }
+
     @media (max-width: 1100px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .page { padding: 32px 32px 48px; }
       .landing-hero-title { font-size: 4rem; }
     }
+
+    @media (max-width: 900px) {
+      .new-run-layout {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+    }
+
     @media (max-width: 800px) {
       #sidebar { transform: translateX(-100%); }
       #sidebar.open { transform: translateX(0); }
       #sidebar-overlay.open { display: block; }
-      #hamburger { display: flex; }
-      #content { margin-left: 0; }
-      .page { padding: 24px 16px 48px; }
+      #content { margin-left: 0; padding-top: 60px; }
+
+      .mobile-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 56px;
+        padding: 0 16px;
+        background: rgba(7, 9, 14, 0.88);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border);
+        z-index: 150;
+      }
+      body.is-landing .mobile-topbar {
+        display: none !important;
+      }
+      body.is-landing #content {
+        padding-top: 0 !important;
+      }
+
+      #hamburger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: static;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        cursor: pointer;
+        color: var(--text);
+        flex-shrink: 0;
+      }
+      .mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--text);
+        cursor: pointer;
+      }
+      .mobile-brand span span {
+        color: var(--primary);
+      }
+      .mobile-logo-img {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+      }
+      .mobile-header-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+      }
+
+      .page { padding: 20px 16px 48px; }
+      .page-header { margin-bottom: 20px; }
+      .page-title { font-size: 24px; }
+      .panel { padding: 20px 16px; border-radius: var(--r-md); }
+      .run-details-grid { grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+
       .landing-hero { min-height: 65vh; padding: 48px 16px; }
       .landing-hero-title { font-size: 3rem; }
       .landing-topbar-links { display: none; }
       .hero-pill-stats { gap: 12px; }
       .h-stat-divider { display: none; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .metrics-row { grid-template-columns: repeat(2, 1fr); }
-      .kv-list { grid-template-columns: 120px 1fr; }
-      .concept-pipeline { gap: 4px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .metrics-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .kv-list { grid-template-columns: 110px 1fr; }
+
+      .concept-pipeline {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        padding-bottom: 6px;
+        scrollbar-width: none;
+      }
+      .concept-pipeline::-webkit-scrollbar { display: none; }
+
+      .pipeline {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        padding: 12px 2px;
+        scrollbar-width: none;
+      }
+      .pipeline::-webkit-scrollbar { display: none; }
     }
+
     @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      .metrics-row { grid-template-columns: 1fr; }
-      .form-actions { flex-direction: column; }
-      .btn-lg { width: 100%; justify-content: center; }
-      .landing-hero-title { font-size: 2.4rem; }
+      .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+      .metrics-row { grid-template-columns: 1fr 1fr; }
+      .form-actions { flex-direction: column; gap: 10px; }
+      .btn-lg { width: 100%; justify-content: center; padding: 13px 20px; font-size: 14.5px; }
+      .landing-hero-title { font-size: 2.2rem; }
+      .kv-list { grid-template-columns: 95px 1fr; }
+      .kv-key, .kv-val { padding: 8px 0; font-size: 12.5px; }
+      .page-title { font-size: 22px; }
+      .page-subtitle { font-size: 13px; }
     }
   </style>
 </head>
 <body>
 
-<!-- Hamburger for mobile -->
-<button id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/>
-    <line x1="3" y1="18" x2="21" y2="18"/>
-  </svg>
-</button>
+<!-- Mobile Top Navigation Header -->
+<header id="mobile-topbar" class="mobile-topbar">
+  <button id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <div class="mobile-brand" onclick="Router.navigate('overview')">
+    <img src="/static/assets/logo.png" alt="MLZero Logo" class="mobile-logo-img">
+    <span><span>ML</span>Zero</span>
+  </div>
+  <div class="mobile-header-status">
+    <span class="engine-dot" id="mobile-engine-dot"></span>
+    <span id="mobile-engine-label" style="font-size:12px;color:var(--muted)">Ready</span>
+  </div>
+</header>
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
@@ -1533,6 +1706,10 @@ const Router = {
   },
   _dispatch() {
     State.stopPolling();
+    // Auto-close mobile sidebar on navigation
+    document.getElementById('sidebar')?.classList.remove('open');
+    document.getElementById('sidebar-overlay')?.classList.remove('open');
+
     const hash = location.hash || '#/landing';
     const parts = hash.replace('#/', '').split('/');
     const page = parts[0] || 'landing';
@@ -2033,30 +2210,29 @@ Pages['new-run'] = function() {
         <div class="page-subtitle">Configure and start an autonomous ML workflow</div>
       </div>
 
-      <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start">
+      <div class="new-run-layout">
         <div>
           <div id="run-alert"></div>
 
           <div class="form-group">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <label class="form-label" style="margin-bottom:0">Dataset Path</label>
-              <div style="display:flex;gap:6px">
-                <button type="button" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 8px" onclick="setDatasetPreset('tests/data/tiny_classification')">Tiny Clf</button>
-                <button type="button" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 8px" onclick="setDatasetPreset('tests/data/tiny_regression')">Tiny Reg</button>
-                <button type="button" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 8px" onclick="setDatasetPreset('tests/mlzero_faulty_datasets/loan_approval_faulty')">Loan Faulty</button>
-              </div>
+            <label class="form-label">Dataset Directory or Path</label>
+            <div class="preset-pill-row">
+              <span class="preset-pill-title">Presets:</span>
+              <button type="button" class="preset-pill" onclick="setDatasetPreset('tests/data/tiny_classification')">Tiny Classification</button>
+              <button type="button" class="preset-pill" onclick="setDatasetPreset('tests/data/tiny_regression')">Tiny Regression</button>
+              <button type="button" class="preset-pill" onclick="setDatasetPreset('tests/mlzero_faulty_datasets/loan_approval_faulty')">Loan Faulty (Self-Healing)</button>
             </div>
             <input type="text" id="ds-path" class="form-input"
-              placeholder="tests/data/tiny_classification"
+              placeholder="e.g. tests/data/tiny_classification or upload below"
               value="tests/data/tiny_classification" />
-            <div class="form-hint">Directory containing train.csv (and optional test.csv)</div>
+            <div class="form-hint">Directory containing train.csv (and optional test.csv) or uploaded file</div>
 
-            <div style="margin-top:10px;padding:12px;border:1px dashed var(--border);border-radius:var(--r);background:rgba(255,255,255,0.02);text-align:center" id="upload-box">
+            <div class="upload-box" id="upload-box">
               <input type="file" id="file-uploader" accept=".csv,.tsv,.zip" style="display:none" onchange="handleDatasetUpload(this.files)">
-              <div style="font-size:12.5px;color:var(--text2);margin-bottom:6px">
+              <div style="font-size:13px;color:var(--text);margin-bottom:6px;font-weight:600">
                 <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;color:var(--primary)"></i>Upload dataset from your computer (.csv or .zip)
               </div>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('file-uploader').click()" id="upload-btn">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('file-uploader').click()" id="upload-btn" style="margin:4px 0">
                 <i class="fa-solid fa-folder-open" style="margin-right:5px"></i>Browse File
               </button>
               <div id="upload-status" style="font-size:11.5px;color:var(--muted);margin-top:5px">Supports .csv, .tsv, or .zip (Max 25MB)</div>
@@ -2508,7 +2684,7 @@ Pages._runDetails = async function(runId) {
       </div>
 
       <!-- Diagnostics + Artifacts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px">
+      <div class="run-details-grid">
         <div class="panel">
           <div class="panel-title">Diagnostics</div>
           ${diagHtml}
@@ -3304,14 +3480,20 @@ async function checkEngine() {
   const dot = document.getElementById('engine-dot');
   const label = document.getElementById('engine-label');
   const vtag = document.getElementById('version-tag');
+  const mDot = document.getElementById('mobile-engine-dot');
+  const mLabel = document.getElementById('mobile-engine-label');
   try {
     const h = await API.get('/health');
-    dot.className = 'engine-dot';
-    label.textContent = 'Engine Ready';
-    vtag.textContent = `v${h.version || '—'}`;
+    if (dot) dot.className = 'engine-dot';
+    if (label) label.textContent = 'Engine Ready';
+    if (vtag) vtag.textContent = `v${h.version || '—'}`;
+    if (mDot) mDot.className = 'engine-dot';
+    if (mLabel) mLabel.textContent = 'Ready';
   } catch(e) {
-    dot.className = 'engine-dot error';
-    label.textContent = 'Engine offline';
+    if (dot) dot.className = 'engine-dot error';
+    if (label) label.textContent = 'Engine offline';
+    if (mDot) mDot.className = 'engine-dot error';
+    if (mLabel) mLabel.textContent = 'Offline';
   }
 }
 

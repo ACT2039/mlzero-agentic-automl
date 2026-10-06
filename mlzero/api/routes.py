@@ -279,8 +279,9 @@ def get_settings() -> dict[str, Any]:
         "artifact_root": settings.app.artifact_root,
         "knowledge_root": settings.memory.knowledge_root,
         "semantic_memory_enabled": settings.memory.semantic_memory_enabled,
-        "gemini_configured": bool(os.environ.get("GEMINI_API_KEY")),
-        "openrouter_configured": bool(os.environ.get("OPENROUTER_API_KEY")),
+        "groq_configured": bool(os.environ.get("GROQ_API_KEY") or settings.groq_api_key),
+        "gemini_configured": bool(os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key),
+        "openrouter_configured": bool(os.environ.get("OPENROUTER_API_KEY") or settings.openrouter_api_key),
     }
 
 
