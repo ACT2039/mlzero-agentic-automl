@@ -39,3 +39,10 @@ async def serve_frontend() -> FileResponse:
     # Fallback if frontend hasn't been built
     from fastapi.responses import JSONResponse
     return JSONResponse({"message": "MLZero API is running. Frontend not found."})  # type: ignore[return-value]
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("mlzero.api.app:app", host="0.0.0.0", port=port, workers=1)
