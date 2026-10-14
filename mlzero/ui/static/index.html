@@ -1755,6 +1755,11 @@ const C = {
         states = ['done','done','done','failed','done','failed'];
       } else if (pTrace.perception_completed === false || (!r.task_summary && !r.dataset_name && iters == null)) {
         states = ['failed','pending','pending','pending','pending','failed'];
+      } else if (pTrace.coder_completed === false || (r.final_error && r.final_error.toLowerCase().includes('code'))) {
+        const retDone = pTrace.semantic_memory_completed !== false;
+        states = ['done', retDone ? 'done' : 'pending', 'failed', 'pending', 'pending', 'failed'];
+      } else if (pTrace.executor_completed === false) {
+        states = ['done','done','done','failed','pending','failed'];
       } else {
         states = ['done','pending','pending','pending','pending','failed'];
       }
@@ -2606,7 +2611,11 @@ Pages._runDetails = async function(runId) {
           </div>
         </div>`;
     } else if (!isActive) {
-      diagHtml = '<div style="color:var(--success);font-size:13.5px;font-weight:600">✓ No errors reported</div>';
+      if (['FAIL', 'FAILED'].includes(status.status) || status.success === false) {
+        diagHtml = '<div style="color:var(--error);font-size:13.5px;font-weight:600">✕ Pipeline halted before completing run.</div>';
+      } else {
+        diagHtml = '<div style="color:var(--success);font-size:13.5px;font-weight:600">✓ No errors reported</div>';
+      }
     } else {
       diagHtml = '<div style="color:var(--muted);font-size:13px">Run in progress…</div>';
     }

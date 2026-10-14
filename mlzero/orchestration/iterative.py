@@ -10,7 +10,7 @@ from mlzero.agents.judge import ExecutionJudgeAgent
 from mlzero.core.config import settings
 from mlzero.core.logger import setup_logger
 from mlzero.memory.semantic import SemanticMemory
-from mlzero.schemas.coder import CodeGenerationRequest
+from mlzero.schemas.coder import CodeGenerationRequest, ErrorContext
 from mlzero.schemas.orchestration import IterationRecord, IterativeRunResult
 from mlzero.schemas.perception import PerceptualContext
 from mlzero.tools.adapters.base import MLLibraryAdapter
@@ -120,17 +120,27 @@ class IterativeCodingOrchestrator:
             
             # 1. Generate code
             artifact = None
+            coder_last_err: Exception | None = None
             for coder_attempt in range(2):
                 try:
                     artifact = self.coder.process(current_request)
                     break
                 except Exception as e:  # noqa: BLE001
+                    coder_last_err = e
                     if coder_attempt == 0:
                         logger.warning(f"Coder failed at iteration {i} (attempt 1), retrying: {e}")
                         time.sleep(1.0)
                     else:
                         logger.error(f"Coder failed at iteration {i}: {e}")
             if artifact is None:
+                final_error = ErrorContext(
+                    iteration=i,
+                    error_category="CodeGenerationError",
+                    error_summary=f"Code generation failed: {coder_last_err}",
+                    error_message=str(coder_last_err),
+                    stderr_excerpt=str(coder_last_err),
+                    suggested_fix="Verify LLM API keys and model limits.",
+                )
                 break
 
             final_artifact = artifact
@@ -140,6 +150,14 @@ class IterativeCodingOrchestrator:
                 result = self.executor.process(artifact)
             except Exception as e:  # noqa: BLE001
                 logger.error(f"Executor crashed at iteration {i}: {e}")
+                final_error = ErrorContext(
+                    iteration=i,
+                    error_category="ExecutorCrash",
+                    error_summary=f"Executor process crashed: {e}",
+                    error_message=str(e),
+                    stderr_excerpt=str(e),
+                    suggested_fix="Check sandbox environment and python execution permissions.",
+                )
                 break
                 
             final_result = result

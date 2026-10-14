@@ -289,7 +289,7 @@ class MLZeroService:
         
         final_err = None
         if not result.success and result.final_error_context:
-            final_err = result.final_error_context.error_category
+            final_err = result.final_error_context.error_summary or result.final_error_context.error_category
             
         dur = result.final_execution_result.duration_seconds if result.final_execution_result else None
         

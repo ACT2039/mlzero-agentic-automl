@@ -540,7 +540,7 @@ class GeminiProviderClient(LLMClient):
             )
         target_model = model or getattr(settings, "gemini_model", None) or settings.llm.model
         if not target_model or not target_model.startswith("gemini"):
-            target_model = "gemini-3.6-flash"
+            target_model = "gemini-2.5-flash"
         self.model = target_model
         raw_url = base_url or settings.real_llm_base_url
         self.base_url = raw_url.rstrip("/") + "/"
@@ -573,6 +573,10 @@ class GeminiProviderClient(LLMClient):
                 last_error = e
                 status_code = e.response.status_code
                 if status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
+                    alt_models = [m for m in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"] if m != payload.get("model")]
+                    if alt_models and (status_code == 503 or "high demand" in e.response.text.lower()):
+                        payload["model"] = alt_models[attempt % len(alt_models)]
+                        self.model = payload["model"]
                     time.sleep(2 ** attempt)
                     continue
                 msg = self._sanitize(f"Gemini HTTP {status_code}: {e.response.text}")
@@ -631,6 +635,10 @@ class GeminiProviderClient(LLMClient):
                 last_error = e
                 status_code = e.response.status_code
                 if status_code in (429, 500, 502, 503, 504) and attempt < self.retry_count - 1:
+                    alt_models = [m for m in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"] if m != payload.get("model")]
+                    if alt_models and (status_code == 503 or "high demand" in e.response.text.lower()):
+                        payload["model"] = alt_models[attempt % len(alt_models)]
+                        self.model = payload["model"]
                     time.sleep(2 ** attempt)
                     continue
                 msg = self._sanitize(f"Gemini HTTP {status_code}: {e.response.text}")
@@ -799,8 +807,15 @@ class OpenRouterProviderClient(LLMClient):
                     response = client.post(url, headers=headers, json=payload)
                     response.raise_for_status()
                     data = response.json()
-                    raw_content = data["choices"][0]["message"]["content"]
+                    msg_obj = data["choices"][0].get("message", {})
+                    raw_content = msg_obj.get("content") or msg_obj.get("reasoning") or msg_obj.get("text")
                     if raw_content is None or (isinstance(raw_content, str) and raw_content.strip().lower() in ("none", "")):
+                        if attempt < self.retry_count - 1:
+                            payload.pop("response_format", None)
+                            if "models" in payload and isinstance(payload["models"], list) and len(payload["models"]) > 1:
+                                payload["models"] = payload["models"][1:] + [payload["models"][0]]
+                            time.sleep(1)
+                            continue
                         raise ValueError("OpenRouter returned empty/null content")
 
                 clean_content = str(raw_content).strip()
@@ -900,59 +915,101 @@ class RealLLMClient(LLMClient):
         from mlzero.core.config import settings
 
         selected_provider = (provider or settings.real_llm_provider or "groq").lower()
-        
+
         primary_client: LLMClient
         fallback_client: LLMClient | None = None
 
+        def safe_groq() -> LLMClient | None:
+            k = api_key or getattr(settings, "groq_api_key", None)
+            if isinstance(k, str) and k.strip():
+                try:
+                    return GroqProviderClient(
+                        api_key=k,
+                        model=model or settings.real_llm_model or "qwen/qwen3.8-27b",
+                        timeout=timeout,
+                        retry_count=retry_count,
+                    )
+                except Exception:  # noqa: BLE001
+                    return None
+            return None
+
         def safe_gemini() -> LLMClient | None:
-            if settings.gemini_api_key and settings.gemini_api_key.strip():
-                gem_m = getattr(settings, "gemini_model", None) or "gemini-3.6-flash"
-                try: return GeminiProviderClient(
-                    model=gem_m,
-                    timeout=timeout, retry_count=retry_count,
-                )
-                except Exception: return None  # noqa: BLE001
+            k = api_key or getattr(settings, "gemini_api_key", None)
+            if isinstance(k, str) and k.strip():
+                gem_m = getattr(settings, "gemini_model", None) or "gemini-3.8-flash"
+                try:
+                    return GeminiProviderClient(
+                        api_key=k,
+                        model=gem_m,
+                        timeout=timeout,
+                        retry_count=retry_count,
+                    )
+                except Exception:  # noqa: BLE001
+                    return None
             return None
 
         def safe_openrouter() -> LLMClient | None:
-            if settings.openrouter_api_key and settings.openrouter_api_key.strip():
-                try: return OpenRouterProviderClient(timeout=timeout, retry_count=retry_count)
-                except Exception: return None  # noqa: BLE001
+            k = api_key or getattr(settings, "openrouter_api_key", None)
+            if isinstance(k, str) and k.strip():
+                try:
+                    return OpenRouterProviderClient(api_key=k, timeout=timeout, retry_count=retry_count)
+                except Exception:  # noqa: BLE001
+                    return None
             return None
 
-        if selected_provider == "groq":
-            primary_client = GroqProviderClient(
+        # Build available provider clients
+        clients_map: dict[str, LLMClient] = {}
+        groq_c = safe_groq()
+        if groq_c:
+            clients_map["groq"] = groq_c
+        gemini_c = safe_gemini()
+        if gemini_c:
+            clients_map["gemini"] = gemini_c
+        openrouter_c = safe_openrouter()
+        if openrouter_c:
+            clients_map["openrouter"] = openrouter_c
+
+        # Choose primary provider
+        if selected_provider in clients_map:
+            primary_name = selected_provider
+        elif clients_map:
+            primary_name = next(iter(clients_map.keys()))
+        else:
+            primary_name = selected_provider
+
+        # Instantiate primary client
+        if primary_name == "groq":
+            primary_client = clients_map.get("groq") or GroqProviderClient(
                 api_key=api_key or settings.groq_api_key or None,
-                model=model or settings.real_llm_model or "openai/gpt-oss-120b",
+                model=model or settings.real_llm_model or "qwen/qwen3.8-27b",
                 timeout=timeout,
                 retry_count=retry_count,
             )
-            g_client = safe_gemini()
-            o_client = safe_openrouter()
-            if g_client and o_client:
-                fallback_client = FallbackLLMClient(primary=g_client, fallback=o_client)
-            elif g_client:
-                fallback_client = g_client
-            else:
-                fallback_client = o_client
-        elif selected_provider == "openrouter":
-            primary_client = OpenRouterProviderClient(
+        elif primary_name == "openrouter":
+            primary_client = clients_map.get("openrouter") or OpenRouterProviderClient(
                 api_key=api_key or settings.openrouter_api_key or None,
                 model=model or settings.openrouter_model or "openrouter/free",
                 base_url=base_url or settings.openrouter_base_url,
                 timeout=timeout,
                 retry_count=retry_count,
             )
-            fallback_client = safe_gemini()
         else:
-            primary_client = GeminiProviderClient(
+            primary_client = clients_map.get("gemini") or GeminiProviderClient(
                 api_key=api_key or settings.gemini_api_key or None,
                 model=model or settings.real_llm_model or settings.llm.model,
                 base_url=base_url or settings.real_llm_base_url,
                 timeout=timeout,
                 retry_count=retry_count,
             )
-            fallback_client = safe_openrouter()
+
+        # Build secondary fallback chain from remaining available providers
+        remaining = [c for name, c in clients_map.items() if name != primary_name]
+        if len(remaining) >= 2:
+            fallback_client = FallbackLLMClient(primary=remaining[0], fallback=remaining[1])
+        elif len(remaining) == 1:
+            fallback_client = remaining[0]
+        else:
+            fallback_client = None
 
         self._client = FallbackLLMClient(primary=primary_client, fallback=fallback_client)
 
@@ -1049,11 +1106,43 @@ class GroqProviderClient(LLMClient):
                 response_text = e.response.text
                 msg = self._sanitize(f"Groq HTTP {status_code}: {response_text}")
                 
-                is_tpm_or_413 = (
+                if status_code == 429:
+                    import re
+                    delay = None
+                    match = re.search(r"Please try again in ([\d\.]+)s", response_text)
+                    if match:
+                        try:
+                            delay = float(match.group(1)) + 0.5
+                        except ValueError:
+                            pass
+                    if delay is None:
+                        retry_after = e.response.headers.get("retry-after")
+                        if retry_after:
+                            try:
+                                delay = float(retry_after) + 0.5
+                            except ValueError:
+                                pass
+
+                    if delay is not None and delay <= 15.0 and attempt < self.retry_count - 1:
+                        time.sleep(delay)
+                        continue
+
+                    from mlzero.core.config import settings as _settings
+                    alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
+                    if alt_models and attempt < self.retry_count - 1:
+                        payload["model"] = alt_models[attempt % len(alt_models)]
+                        self.model = payload["model"]
+                        time.sleep(1)
+                        continue
+
+                    raise TransientLLMError(f"Groq request failed: {msg}") from None
+
+                is_413_or_overflow = (
                     status_code == 413
                     or "request too large" in response_text.lower()
+                    or "context length" in response_text.lower()
                 )
-                if is_tpm_or_413:
+                if is_413_or_overflow:
                     raw_max = payload.get("max_tokens")
                     curr_max = int(raw_max) if isinstance(raw_max, (int, float)) else 2048
                     if curr_max > 1200 and attempt < self.retry_count - 1:
@@ -1063,29 +1152,11 @@ class GroqProviderClient(LLMClient):
                     from mlzero.core.config import settings as _settings
                     alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
                     if alt_models and attempt < self.retry_count - 1:
-                        payload["model"] = alt_models[0]
-                        self.model = alt_models[0]
+                        payload["model"] = alt_models[attempt % len(alt_models)]
+                        self.model = payload["model"]
                         time.sleep(1)
                         continue
                     raise TransientLLMError(f"Groq request failed due to token limits: {msg}") from None
-
-                if status_code == 429:
-                    import re
-                    if "tokens per day" in response_text or "TPD" in response_text:
-                        from mlzero.core.config import settings as _settings
-                        alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
-                        if alt_models and attempt < self.retry_count - 1:
-                            payload["model"] = alt_models[0]
-                            self.model = alt_models[0]
-                            time.sleep(1)
-                            continue
-                    match = re.search(r"Please try again in ([\d\.]+)s", response_text)
-                    if match and attempt < self.retry_count - 1:
-                        delay = float(match.group(1)) + 0.5
-                        if delay <= 5.0:
-                            time.sleep(delay)
-                            continue
-                    raise TransientLLMError(f"Groq request failed: {msg}") from None
                     
                 if status_code in (500, 502, 503, 504):
                     if attempt < self.retry_count - 1:
@@ -1215,13 +1286,43 @@ class GroqProviderClient(LLMClient):
                         time.sleep(1)
                         continue
 
-                is_tpm_or_413 = (
+                if status_code == 429:
+                    import re
+                    delay = None
+                    match = re.search(r"Please try again in ([\d\.]+)s", response_text)
+                    if match:
+                        try:
+                            delay = float(match.group(1)) + 0.5
+                        except ValueError:
+                            pass
+                    if delay is None:
+                        retry_after = e.response.headers.get("retry-after")
+                        if retry_after:
+                            try:
+                                delay = float(retry_after) + 0.5
+                            except ValueError:
+                                pass
+
+                    if delay is not None and delay <= 15.0 and attempt < self.retry_count - 1:
+                        time.sleep(delay)
+                        continue
+
+                    from mlzero.core.config import settings as _settings
+                    alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
+                    if alt_models and attempt < self.retry_count - 1:
+                        payload["model"] = alt_models[attempt % len(alt_models)]
+                        self.model = payload["model"]
+                        time.sleep(1)
+                        continue
+
+                    raise TransientLLMError(f"Groq request failed: {msg}") from None
+
+                is_413_or_overflow = (
                     status_code == 413
                     or "request too large" in response_text.lower()
-                    or "tokens per minute" in response_text.lower()
-                    or "tpm" in response_text.lower()
+                    or "context length" in response_text.lower()
                 )
-                if is_tpm_or_413:
+                if is_413_or_overflow:
                     raw_max = payload.get("max_tokens")
                     curr_max = int(raw_max) if isinstance(raw_max, (int, float)) else 2048
                     if curr_max > 1200 and attempt < self.retry_count - 1:
@@ -1231,29 +1332,11 @@ class GroqProviderClient(LLMClient):
                     from mlzero.core.config import settings as _settings
                     alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
                     if alt_models and attempt < self.retry_count - 1:
-                        payload["model"] = alt_models[0]
-                        self.model = alt_models[0]
+                        payload["model"] = alt_models[attempt % len(alt_models)]
+                        self.model = payload["model"]
                         time.sleep(1)
                         continue
                     raise TransientLLMError(f"Groq request failed due to token limits: {msg}") from None
-
-                if status_code == 429:
-                    import re
-                    if "tokens per day" in response_text or "TPD" in response_text:
-                        from mlzero.core.config import settings as _settings
-                        alt_models = [m for m in getattr(_settings, "groq_fallback_models", []) if m != payload["model"]]
-                        if alt_models and attempt < self.retry_count - 1:
-                            payload["model"] = alt_models[0]
-                            self.model = alt_models[0]
-                            time.sleep(1)
-                            continue
-                    match = re.search(r"Please try again in ([\d\.]+)s", response_text)
-                    if match and attempt < self.retry_count - 1:
-                        delay = float(match.group(1)) + 0.5
-                        if delay <= 5.0:
-                            time.sleep(delay)
-                            continue
-                    raise TransientLLMError(f"Groq request failed: {msg}") from None
 
                 if status_code in (500, 502, 503, 504):
                     if attempt < self.retry_count - 1:

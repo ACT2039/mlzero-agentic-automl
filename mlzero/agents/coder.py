@@ -143,7 +143,7 @@ class CoderAgent:
         if not has_episodic:
             prompt += "(Iteration 1: No previous failures recorded)\n"
 
-        artifact = self.llm_client.generate_structured(prompt, CodeArtifact, max_tokens=1800)
+        artifact = self.llm_client.generate_structured(prompt, CodeArtifact, max_tokens=3500)
         if artifact.code and r"\n" in artifact.code and ("\n" not in artifact.code or artifact.code.count(r"\n") > artifact.code.count("\n")):
             artifact.code = artifact.code.replace(r"\r\n", "\n").replace(r"\n", "\n").replace(r"\t", "\t")
         if artifact.code:

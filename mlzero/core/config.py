@@ -110,15 +110,15 @@ class Settings(BaseSettings):
     """
     openai_api_key: str = ""
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.6-flash"
+    gemini_model: str = "gemini-3.8-flash"
     openrouter_api_key: str = ""
     groq_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "openrouter/free"
     llm_mode: str = Field(default_factory=lambda: os.environ.get("MLZERO_LLM_MODE", os.environ.get("LLM_MODE", "mock")))
     real_llm_provider: str = "groq"
-    real_llm_model: str = "openai/gpt-oss-20b"
-    groq_fallback_models: list[str] = Field(default_factory=lambda: ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"])
+    real_llm_model: str = "qwen/qwen3.8-27b"
+    groq_fallback_models: list[str] = Field(default_factory=lambda: ["openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"])
     real_llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
     hf_token: str = ""
     environment: str = "development"
